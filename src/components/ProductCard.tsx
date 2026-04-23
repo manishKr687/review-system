@@ -1,9 +1,12 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Heart, GitCompare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StarRating from './StarRating';
+import { useStore } from '../store/useStore';
 import { type Product } from '../data/mockData';
 
 interface ProductCardProps {
   product: Product;
+  showActions?: boolean;
 }
 
 const rankBadgeColor: Record<number, string> = {
@@ -13,38 +16,53 @@ const rankBadgeColor: Record<number, string> = {
   4: 'bg-gray-300',
 };
 
-// Simple inline SVG phone for product cards
-function MiniPhone({ color }: { color: string }) {
-  return (
-    <svg viewBox="0 0 60 110" className="w-16 h-auto drop-shadow-md" fill="none">
-      <rect x="4" y="2" width="52" height="106" rx="10" fill={color} />
-      <rect x="8" y="12" width="44" height="82" rx="6" fill="white" opacity="0.15" />
-      <rect x="20" y="6" width="20" height="4" rx="2" fill="black" opacity="0.3" />
-      <rect x="4" y="30" width="2" height="10" rx="1" fill={color} style={{ filter: 'brightness(0.7)' }} />
-      <rect x="4" y="44" width="2" height="12" rx="1" fill={color} style={{ filter: 'brightness(0.7)' }} />
-      <circle cx="30" cy="100" r="4" fill="white" opacity="0.2" />
-    </svg>
-  );
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const badgeColor = rankBadgeColor[product.rank] ?? 'bg-gray-300';
+export default function ProductCard({ product, showActions = false }: ProductCardProps) {
+  const navigate = useNavigate();
+  const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
+  const inWatchlist = isInWatchlist(product.id);
+  const inCompare   = isInCompare(product.id);
+  const badgeColor  = rankBadgeColor[product.rank] ?? 'bg-gray-300';
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
 
       {/* Image area */}
-      <div className={`relative bg-gradient-to-br ${product.bgFrom} ${product.bgTo} h-44 flex items-center justify-center`}>
-        {/* Rank badge */}
+      <div
+        className={`relative bg-gradient-to-br ${product.bgFrom} ${product.bgTo} h-44 flex items-center justify-center cursor-pointer`}
+        onClick={() => navigate(`/product/${product.id}`)}
+      >
         <div className={`absolute top-3 left-3 w-7 h-7 rounded-lg ${badgeColor} flex items-center justify-center text-white text-sm font-bold shadow`}>
           {product.rank}
         </div>
-        <MiniPhone color={product.phoneColor} />
+        <span className="text-7xl drop-shadow">{product.icon}</span>
+
+        {/* Quick action buttons */}
+        {showActions && (
+          <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+            <button
+              onClick={e => { e.stopPropagation(); toggleWatchlist(product.id); }}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center shadow transition-colors ${inWatchlist ? 'bg-red-500 text-white' : 'bg-white text-gray-400 hover:text-red-500'}`}
+            >
+              <Heart className="w-3.5 h-3.5" fill={inWatchlist ? 'currentColor' : 'none'} />
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); addToCompare(product.id); }}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center shadow transition-colors ${inCompare ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400 hover:text-indigo-600'}`}
+            >
+              <GitCompare className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">{product.name}</h3>
+        <h3
+          className="font-semibold text-gray-900 text-sm mb-1 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+          onClick={() => navigate(`/product/${product.id}`)}
+        >
+          {product.name}
+        </h3>
 
         <div className="flex items-center gap-1.5 mb-2">
           <StarRating rating={product.rating} size="xs" />
@@ -57,9 +75,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           "{product.quote}"
         </p>
 
-        <button className="flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-800 transition-colors mb-3">
-          View all reviews
-          <ArrowRight className="w-3 h-3" />
+        <button
+          onClick={() => navigate(`/product/${product.id}`)}
+          className="flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-800 transition-colors mb-3"
+        >
+          View all reviews <ArrowRight className="w-3 h-3" />
         </button>
 
         <div className="pt-2 border-t border-gray-50">

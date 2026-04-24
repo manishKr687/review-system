@@ -2,7 +2,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, ArrowRight, Trophy } from 'lucide-react';
 import { useState } from 'react';
 import StarRating from '../components/StarRating';
-import { searchProducts } from '../data/mockData';
+import { useSearch } from '../hooks/useProducts';
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -10,7 +10,7 @@ export default function SearchResults() {
   const initialQuery    = searchParams.get('q') ?? '';
   const [localQuery, setLocalQuery] = useState(initialQuery);
 
-  const results  = searchProducts(initialQuery);
+  const { data: results = [] } = useSearch(initialQuery);
   const hasQuery = initialQuery.trim().length > 0;
 
   const handleSearch = () => {

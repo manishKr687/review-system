@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import { allProducts, categories } from '../data/mockData';
+import { useProducts, useCategories } from '../hooks/useProducts';
 
 type SortOption = 'best' | 'rated' | 'reviews' | 'az';
 type PriceRange = 'all' | 'under20' | '20to50' | '50to80' | 'above80';
@@ -30,6 +30,9 @@ export default function CategoryBrowse() {
   const [price,     setPrice]     = useState<PriceRange>('all');
   const [minRating, setMinRating] = useState<MinRating>('all');
 
+  const { data: allProducts = [] } = useProducts();
+  const { data: categoriesData = [] } = useCategories();
+
   const filtered = useMemo(() => {
     let list = activeCategory === 'All'
       ? allProducts
@@ -42,7 +45,7 @@ export default function CategoryBrowse() {
     if (sort === 'reviews') return [...list].sort((a, b) => b.reviewCount - a.reviewCount);
     if (sort === 'az')      return [...list].sort((a, b) => a.name.localeCompare(b.name));
     return [...list].sort((a, b) => b.rating - a.rating);
-  }, [activeCategory, sort, price, minRating]);
+  }, [activeCategory, sort, price, minRating, allProducts]);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -56,7 +59,7 @@ export default function CategoryBrowse() {
 
         {/* Category tabs */}
         <div className="flex gap-2 flex-wrap mb-6">
-          {['All', ...categories.map(c => c.name)].map(cat => (
+          {['All', ...categoriesData.map(c => c.name)].map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}

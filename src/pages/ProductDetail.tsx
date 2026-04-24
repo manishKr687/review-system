@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import { useStore } from '../store/useStore';
-import { getProductById, getReviewsByProductId, getProductSummary } from '../data/mockData';
+import { useProduct, useReviews } from '../hooks/useProducts';
 
 type Tab = 'overview' | 'reviews';
 type ReviewFilter = 'all' | 'positive' | 'negative' | 'verified';
@@ -20,7 +20,17 @@ export default function ProductDetail() {
 
   const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
 
-  const product = getProductById(Number(id));
+  const { data: product, loading: productLoading } = useProduct(Number(id));
+  const { data: reviews = [] } = useReviews(Number(id), reviewFilter);
+
+  if (productLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -33,19 +43,10 @@ export default function ProductDetail() {
     );
   }
 
-  const allReviews  = getReviewsByProductId(product.id);
-  const summary     = getProductSummary(product.id);
   const inWatchlist = isInWatchlist(product.id);
   const inCompare   = isInCompare(product.id);
-
-  const filteredReviews = allReviews.filter(r => {
-    if (reviewFilter === 'positive') return r.sentiment === 'positive';
-    if (reviewFilter === 'negative') return r.sentiment === 'negative';
-    if (reviewFilter === 'verified') return r.verified;
-    return true;
-  });
-
-  const aspects = Object.entries(product.aspects).filter(([, v]) => v > 0);
+  const aspects     = Object.entries(product.aspects).filter(([, v]) => v > 0);
+  const { data: allReviews = [] } = useReviews(Number(id));
 
   return (
     <div className="h-full overflow-y-auto">
@@ -118,7 +119,7 @@ export default function ProductDetail() {
             <div className="mt-4 space-y-2">
               {aspects.map(([key, score]) => (
                 <div key={key} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-24 flex-shrink-0">{aspectLabels[key]}</span>
+                  <span className="text-xs text-gray-500 w-24 flex-shrink-0">{aspectLabels[key] ?? key}</span>
                   <div className="flex-1 bg-gray-100 rounded-full h-2">
                     <div className="bg-emerald-500 rounded-full h-2 transition-all" style={{ width: `${(score / 5) * 100}%` }} />
                   </div>
@@ -145,7 +146,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Overview tab */}
-        {tab === 'overview' && summary && (
+        {tab === 'overview' && (product.pros.length > 0 || product.cons.length > 0) && (
           <div className="space-y-6">
             {/* Pros & Cons */}
             <div className="grid grid-cols-2 gap-4">
@@ -154,7 +155,7 @@ export default function ProductDetail() {
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Pros
                 </h3>
                 <ul className="space-y-2">
-                  {summary.pros.map((pro, i) => (
+                  {product.pros.map((pro, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
                       <span className="text-emerald-500 mt-0.5 flex-shrink-0">✓</span> {pro}
                     </li>
@@ -166,7 +167,7 @@ export default function ProductDetail() {
                   <XCircle className="w-5 h-5 text-red-400" /> Cons
                 </h3>
                 <ul className="space-y-2">
-                  {summary.cons.map((con, i) => (
+                  {product.cons.map((con, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
                       <span className="text-red-400 mt-0.5 flex-shrink-0">✗</span> {con}
                     </li>
@@ -176,18 +177,20 @@ export default function ProductDetail() {
             </div>
 
             {/* Highlights */}
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-amber-500" /> Review Highlights
-              </h3>
-              <ul className="space-y-2">
-                {summary.highlights.map((h, i) => (
-                  <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                    <span className="text-amber-400 flex-shrink-0">›</span> "{h}"
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {product.highlights.length > 0 && (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5">
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-500" /> Review Highlights
+                </h3>
+                <ul className="space-y-2">
+                  {product.highlights.map((h, i) => (
+                    <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                      <span className="text-amber-400 flex-shrink-0">›</span> "{h}"
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
@@ -209,18 +212,17 @@ export default function ProductDetail() {
                   {f === 'verified' ? '✓ Verified Only' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
-              <span className="ml-auto text-xs text-gray-400 self-center">{filteredReviews.length} reviews</span>
+              <span className="ml-auto text-xs text-gray-400 self-center">{reviews.length} reviews</span>
             </div>
 
             {/* Review cards */}
-            {filteredReviews.length === 0 ? (
+            {reviews.length === 0 ? (
               <div className="text-center py-12 text-gray-400">No reviews match this filter.</div>
             ) : (
-              filteredReviews.map(review => (
+              reviews.map(review => (
                 <div key={review.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      {/* Avatar */}
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                         {review.initials}
                       </div>

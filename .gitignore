@@ -28,6 +28,8 @@ coverage/
 # Vite cache
 .vite/
 
-# Project documentation (internal only)
-docs/
-SPRINTS.md
+# Python
+__pycache__/
+*.pyc
+*.pyo
+backend/.venv/

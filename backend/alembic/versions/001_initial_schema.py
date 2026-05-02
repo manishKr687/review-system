@@ -33,7 +33,7 @@ def upgrade() -> None:
     op.create_table(
         "reviews",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("product_id", sa.Integer, sa.ForeignKey("products.id"), nullable=False, index=True),
+        sa.Column("product_id", sa.Integer, sa.ForeignKey("products.id"), nullable=False),
         sa.Column("author", sa.String(100), nullable=False),
         sa.Column("rating", sa.Float, nullable=False),
         sa.Column("title", sa.String(200), default=""),

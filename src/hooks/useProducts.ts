@@ -76,7 +76,7 @@ function adaptReview(r: ApiReview): Review {
 // ── Hook result type ─────────────────────────────────────────────────────────
 
 interface HookState<T> {
-  data: T | null
+  data: T | undefined
   loading: boolean
   error: string | null
 }
@@ -89,12 +89,12 @@ function useDualMode<T>(
   apiFetcher: () => Promise<T>,
   apsDeps: unknown[],  // deps that trigger a new API fetch
 ): HookState<T> {
-  const [apiState, setApiState] = useState<HookState<T>>({ data: null, loading: true, error: null })
+  const [apiState, setApiState] = useState<HookState<T>>({ data: undefined, loading: true, error: null })
 
   useEffect(() => {
     if (!API_ENABLED) return
     let cancelled = false
-    setApiState({ data: null, loading: true, error: null })
+    setApiState({ data: undefined, loading: true, error: null })
     apiFetcher()
       .then(d => { if (!cancelled) setApiState({ data: d, loading: false, error: null }) })
       .catch(e => { if (!cancelled) setApiState({ data: null, loading: false, error: String(e) }) })

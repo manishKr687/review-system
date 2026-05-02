@@ -30,6 +30,34 @@ services:
       timeout: 5s
       retries: 5
 
+  worker:
+    build: ./backend
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      DATABASE_URL: postgresql+asyncpg://reviewlens:reviewlens@db:5432/reviewlens
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+
+  flower:
+    build: ./backend
+    command: celery -A app.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://reviewlens:reviewlens@db:5432/reviewlens
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+      - worker
+    volumes:
+      - ./backend:/app
+
   redis:
     image: redis:7-alpine
     ports:

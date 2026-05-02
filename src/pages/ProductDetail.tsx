@@ -20,8 +20,12 @@ export default function ProductDetail() {
 
   const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
 
-  const { data: product, loading: productLoading } = useProduct(Number(id));
-  const { data: reviews = [] } = useReviews(Number(id), reviewFilter);
+  const productId = Number(id);
+  const { data: product, loading: productLoading, error: productError } = useProduct(productId);
+  const { data: reviewsRaw }    = useReviews(productId, reviewFilter);
+  const { data: allReviewsRaw } = useReviews(productId);
+  const reviews    = reviewsRaw    ?? [];
+  const allReviews = allReviewsRaw ?? [];
 
   if (productLoading) {
     return (
@@ -36,6 +40,7 @@ export default function ProductDetail() {
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <p className="text-2xl">😕</p>
         <p className="text-gray-500 font-medium">Product not found</p>
+        {productError && <p className="text-xs text-red-400 max-w-sm text-center">{productError}</p>}
         <button onClick={() => navigate('/')} className="text-indigo-600 text-sm font-medium hover:underline">
           ← Back to Home
         </button>
@@ -46,7 +51,6 @@ export default function ProductDetail() {
   const inWatchlist = isInWatchlist(product.id);
   const inCompare   = isInCompare(product.id);
   const aspects     = Object.entries(product.aspects).filter(([, v]) => v > 0);
-  const { data: allReviews = [] } = useReviews(Number(id));
 
   return (
     <div className="h-full overflow-y-auto">

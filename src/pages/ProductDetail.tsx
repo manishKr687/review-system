@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp, AlertTriangle } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import { useStore } from '../store/useStore';
 import { useProduct, useReviews } from '../hooks/useProducts';
@@ -153,7 +153,7 @@ export default function ProductDetail() {
         {tab === 'overview' && (product.pros.length > 0 || product.cons.length > 0) && (
           <div className="space-y-6">
             {/* Pros & Cons */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Pros
@@ -236,6 +236,11 @@ export default function ProductDetail() {
                           {review.verified && (
                             <span className="flex items-center gap-1 text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full font-medium">
                               <ShieldCheck className="w-3 h-3" /> Verified
+                            </span>
+                          )}
+                          {review.isSuspicious && (
+                            <span className="flex items-center gap-1 text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium" title="Our AI flagged this review as potentially unreliable">
+                              <AlertTriangle className="w-3 h-3" /> Suspicious
                             </span>
                           )}
                         </div>

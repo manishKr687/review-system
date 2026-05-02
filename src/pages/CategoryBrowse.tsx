@@ -74,9 +74,9 @@ export default function CategoryBrowse() {
           ))}
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-6">
           {/* Filter sidebar */}
-          <aside className="w-52 flex-shrink-0 space-y-6">
+          <aside className="w-full md:w-52 flex-shrink-0 space-y-6">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
               <h3 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-indigo-500" /> Filters
@@ -144,7 +144,7 @@ export default function CategoryBrowse() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filtered.map(product => (
                   <ProductCard key={product.id} product={product} showActions />
                 ))}

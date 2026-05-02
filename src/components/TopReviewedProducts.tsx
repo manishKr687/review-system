@@ -58,13 +58,13 @@ export default function TopReviewedProducts() {
       {/* Product grid */}
       <div className="relative">
         {loading ? (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="bg-gray-100 rounded-2xl h-48 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

@@ -40,6 +40,7 @@ class ProductList(BaseModel):
     icon: str
     quote: str
     aspects: dict
+    scores: dict = {}
 
     model_config = {"from_attributes": True}
 

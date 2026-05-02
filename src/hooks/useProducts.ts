@@ -22,7 +22,7 @@ import {
   searchProducts as mockSearch,
   getProductsByCategory,
 } from '../data/mockData'
-import type { Product, Review } from '../data/mockData'
+import type { Product, Review, RecommendationScores } from '../data/mockData'
 
 // ── Adapter: ApiProduct → mock Product ──────────────────────────────────────
 
@@ -55,6 +55,7 @@ function adaptProduct(p: ApiProduct, rank = 0): Product {
       display: p.aspects.display ?? 0,
     },
     ...colors,
+    scores: p.scores as RecommendationScores | undefined,
   }
 }
 
@@ -72,6 +73,7 @@ function adaptReview(r: ApiReview): Review {
     verified: r.verified,
     helpfulVotes: r.helpful,
     sentiment: r.sentiment,
+    isSuspicious: r.is_suspicious,
   }
 }
 

@@ -13,7 +13,7 @@ from app.celery_app import celery_app
 from app.database import SyncSessionLocal
 from app.models.product import Product
 from app.models.review import Review
-from app.services.nlp import analyse_sentiment, extract_aspect_sentiments
+from app.services.nlp import analyse_sentiment, detect_suspicious, extract_aspect_sentiments
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ def analyse_review(self, review_id: int) -> dict:
 
         label, score = analyse_sentiment(review.body)
         review.sentiment = label
+        review.is_suspicious = detect_suspicious(review.body, review.rating)
         db.commit()
         logger.info("Review %d → %s (%.3f)", review_id, label, score)
         return {"review_id": review_id, "sentiment": label, "score": score}
@@ -51,6 +52,7 @@ def analyse_all_reviews(self) -> dict:
         for i, review in enumerate(reviews):
             label, _ = analyse_sentiment(review.body)
             review.sentiment = label
+            review.is_suspicious = detect_suspicious(review.body, review.rating)
 
             aspects = extract_aspect_sentiments(review.body)
             for aspect, score in aspects.items():

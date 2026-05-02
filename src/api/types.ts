@@ -8,6 +8,14 @@ export interface AspectScores {
   value: number
 }
 
+export interface RecommendationScores {
+  composite: number
+  sentiment: number
+  credibility: number
+  recency: number
+  value: number
+}
+
 export interface ApiProduct {
   id: number
   name: string
@@ -19,6 +27,7 @@ export interface ApiProduct {
   icon: string
   quote: string
   aspects: AspectScores
+  scores?: RecommendationScores
   pros?: string[]
   cons?: string[]
   highlights?: string[]
@@ -35,6 +44,7 @@ export interface ApiReview {
   verified: boolean
   helpful: number
   date: string
+  is_suspicious: boolean
 }
 
 export interface ProductsResponse {

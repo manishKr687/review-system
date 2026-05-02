@@ -41,10 +41,10 @@ function PhoneIllustration({ color }: { color: string }) {
 
 export default function HeroSection() {
   return (
-    <div className="bg-white rounded-2xl px-8 py-6 flex items-center gap-8 shadow-sm border border-gray-100">
+    <div className="bg-white rounded-2xl px-5 md:px-8 py-6 flex flex-col sm:flex-row items-center gap-6 md:gap-8 shadow-sm border border-gray-100">
 
       {/* Left — Headline */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 text-center sm:text-left">
         <h2 className="text-2xl font-bold text-gray-900 leading-snug">
           Find the best products<br />
           <span className="text-indigo-600">based on real reviews</span>
@@ -54,13 +54,13 @@ export default function HeroSection() {
         </p>
       </div>
 
-      {/* Center — Product image */}
-      <div className="flex-shrink-0 flex items-center justify-center w-36">
+      {/* Center — Product image (hidden on xs) */}
+      <div className="hidden sm:flex flex-shrink-0 items-center justify-center w-36">
         <PhoneIllustration color={heroProduct.phoneColor} />
       </div>
 
       {/* Right — Rating breakdown */}
-      <div className="flex-shrink-0 min-w-[200px]">
+      <div className="flex-shrink-0 w-full sm:w-auto sm:min-w-[200px]">
         <p className="text-xs text-gray-400 font-medium mb-1">Overall Rating</p>
         <div className="flex items-end gap-2 mb-1">
           <span className="text-4xl font-extrabold text-gray-900 leading-none">

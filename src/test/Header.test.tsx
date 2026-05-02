@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import Header from '../components/Header'
 
 // Header uses useNavigate so it must be rendered inside a Router
-const renderHeader = () => render(<MemoryRouter><Header /></MemoryRouter>)
+const renderHeader = () => render(<MemoryRouter><Header onMenuClick={() => {}} /></MemoryRouter>)
 
 describe('Header', () => {
 

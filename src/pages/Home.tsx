@@ -17,8 +17,10 @@ export default function Home() {
         <ReviewInsights />
       </main>
 
-      {/* Fixed right panel — only on home page */}
-      <ReviewSummaryPanel />
+      {/* Fixed right panel — only on home page, hidden on small screens */}
+      <div className="hidden xl:block">
+        <ReviewSummaryPanel />
+      </div>
     </div>
   );
 }

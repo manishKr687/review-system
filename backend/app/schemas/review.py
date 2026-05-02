@@ -12,6 +12,7 @@ class ReviewOut(BaseModel):
     verified: bool
     helpful: int
     date: str
+    is_suspicious: bool = False
 
     model_config = {"from_attributes": True}
 

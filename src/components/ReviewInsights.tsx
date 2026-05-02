@@ -8,7 +8,7 @@ export default function ReviewInsights() {
         <p className="text-xs text-gray-400 mt-0.5">AI-powered analysis from thousands of reviews</p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {insightStats.map(({ value, label, icon, color }) => (
           <div
             key={label}

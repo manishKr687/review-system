@@ -83,3 +83,37 @@ def extract_aspect_sentiments(text: str) -> dict[str, float]:
 def score_to_aspect_rating(compound: float) -> float:
     """Convert VADER compound [-1, 1] to a 1-5 star scale."""
     return round(max(1.0, min(5.0, 2.0 + compound * 2.0)), 2)
+
+
+def detect_suspicious(text: str, rating: float) -> bool:
+    """
+    Heuristic fake-review detector. Flags reviews that show common spam signals:
+    - Extremely short body (< 8 words)
+    - All-caps text (shouting / bot pattern)
+    - Hyperbolic VADER compound (> 0.95 or < -0.95) on a very short review
+    - Star/sentiment mismatch: 5-star rating with clearly negative text, or vice-versa
+    """
+    words = text.split()
+    word_count = len(words)
+
+    if word_count < 8:
+        return True
+
+    # All-caps threshold: >60 % of alphabetic chars are uppercase
+    alpha = [c for c in text if c.isalpha()]
+    if alpha and sum(1 for c in alpha if c.isupper()) / len(alpha) > 0.6:
+        return True
+
+    compound = _analyzer.polarity_scores(text)["compound"]
+
+    # Hyperbolic extremely short review
+    if word_count < 20 and abs(compound) > 0.95:
+        return True
+
+    # Star / sentiment mismatch
+    if rating >= 4.5 and compound < -0.4:
+        return True
+    if rating <= 2.0 and compound > 0.4:
+        return True
+
+    return False

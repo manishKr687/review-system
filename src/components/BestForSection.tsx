@@ -93,7 +93,7 @@ export default function BestForSection() {
           Top picks matched to specific use cases
         </p>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {USE_CASES.map(uc => <UseCaseCard key={uc.type} {...uc} />)}
       </div>
     </section>

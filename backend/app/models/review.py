@@ -17,5 +17,6 @@ class Review(Base):
     verified: Mapped[bool] = mapped_column(Boolean, default=False)
     helpful: Mapped[int] = mapped_column(Integer, default=0)
     date: Mapped[str] = mapped_column(String(20), default="")
+    is_suspicious: Mapped[bool] = mapped_column(Boolean, default=False)
 
     product: Mapped["Product"] = relationship(back_populates="reviews")

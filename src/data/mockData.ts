@@ -7,6 +7,14 @@ export interface AspectScores {
   display: number;
 }
 
+export interface RecommendationScores {
+  composite: number;
+  sentiment: number;
+  credibility: number;
+  recency: number;
+  value: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -22,6 +30,7 @@ export interface Product {
   bgTo: string;
   phoneColor: string;
   icon: string;
+  scores?: RecommendationScores;
 }
 
 export interface Review {
@@ -35,6 +44,7 @@ export interface Review {
   verified: boolean;
   helpfulVotes: number;
   sentiment: 'positive' | 'negative' | 'neutral';
+  isSuspicious?: boolean;
 }
 
 export interface ProductSummary {

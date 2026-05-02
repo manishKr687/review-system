@@ -1,4 +1,5 @@
-import { ArrowRight, Heart, GitCompare } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Heart, GitCompare, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StarRating from './StarRating';
 import { useStore } from '../store/useStore';
@@ -16,15 +17,32 @@ const rankBadgeColor: Record<number, string> = {
   4: 'bg-gray-300',
 };
 
+function ScoreBar({ label, value }: { label: string; value: number }) {
+  const pct = Math.round(value * 100);
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] text-gray-500 w-20 flex-shrink-0">{label}</span>
+      <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+        <div
+          className="bg-indigo-500 rounded-full h-1.5"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="text-[10px] font-semibold text-indigo-600 w-6 text-right">{pct}%</span>
+    </div>
+  );
+}
+
 export default function ProductCard({ product, showActions = false }: ProductCardProps) {
   const navigate = useNavigate();
   const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
   const inWatchlist = isInWatchlist(product.id);
   const inCompare   = isInCompare(product.id);
   const badgeColor  = rankBadgeColor[product.rank] ?? 'bg-gray-300';
+  const [showScores, setShowScores] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col relative">
 
       {/* Image area */}
       <div
@@ -82,11 +100,37 @@ export default function ProductCard({ product, showActions = false }: ProductCar
           View all reviews <ArrowRight className="w-3 h-3" />
         </button>
 
-        <div className="pt-2 border-t border-gray-50">
+        <div className="pt-2 border-t border-gray-50 flex items-center justify-between">
           <p className="text-[11px] text-gray-400">
             {product.reviewCount.toLocaleString()} reviews analyzed
           </p>
+
+          {/* "Why recommended?" trigger — only shown when scores are present */}
+          {product.scores && (
+            <button
+              onClick={() => setShowScores(v => !v)}
+              className="flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 transition-colors"
+              title="Why is this recommended?"
+            >
+              <Info className="w-3 h-3" />
+              Why?
+            </button>
+          )}
         </div>
+
+        {/* Score breakdown panel */}
+        {showScores && product.scores && (
+          <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Why recommended
+            </p>
+            <ScoreBar label="Overall fit"   value={product.scores.composite}   />
+            <ScoreBar label="Sentiment"     value={product.scores.sentiment}   />
+            <ScoreBar label="Credibility"   value={product.scores.credibility} />
+            <ScoreBar label="Recency"       value={product.scores.recency}     />
+            <ScoreBar label="Value"         value={product.scores.value}       />
+          </div>
+        )}
       </div>
 
     </div>

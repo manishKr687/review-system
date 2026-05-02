@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   Home, Star, LayoutGrid, GitCompare, MessageSquare,
-  FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine, Settings,
+  FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine, Settings, X,
 } from 'lucide-react';
 
 const navItems = [
@@ -46,12 +46,23 @@ function SidebarLink({ icon: Icon, label, path, exact = false }: NavItemProps) {
   );
 }
 
-export default function Sidebar() {
-  return (
-    <aside className="w-60 bg-white border-r border-gray-100 flex flex-col h-screen flex-shrink-0">
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  return (
+    <aside
+      className={`
+        fixed inset-y-0 left-0 z-30 w-60 bg-white border-r border-gray-100 flex flex-col h-screen flex-shrink-0
+        transform transition-transform duration-200 ease-in-out
+        lg:static lg:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
       {/* Logo */}
-      <div className="px-5 py-4 border-b border-gray-100">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <Star className="w-4 h-4 text-white fill-white" />
@@ -61,6 +72,13 @@ export default function Sidebar() {
             <p className="text-[11px] text-gray-400 leading-tight">Real reviews. Smart choices.</p>
           </div>
         </div>
+        {/* Close button — mobile only */}
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -77,10 +95,10 @@ export default function Sidebar() {
         ))}
       </nav>
 
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mt-5 mb-2">
-          Admin
-        </p>
-        <SidebarLink icon={Settings} label="Admin Panel" path="/admin" />
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mt-5 mb-2">
+        Admin
+      </p>
+      <SidebarLink icon={Settings} label="Admin Panel" path="/admin" />
 
       {/* Share card */}
       <div className="p-3">

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   Home, Star, LayoutGrid, GitCompare, MessageSquare,
-  FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine,
+  FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine, Settings,
 } from 'lucide-react';
 
 const navItems = [
@@ -76,6 +76,11 @@ export default function Sidebar() {
           <SidebarLink key={item.label} {...item} />
         ))}
       </nav>
+
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mt-5 mb-2">
+          Admin
+        </p>
+        <SidebarLink icon={Settings} label="Admin Panel" path="/admin" />
 
       {/* Share card */}
       <div className="p-3">

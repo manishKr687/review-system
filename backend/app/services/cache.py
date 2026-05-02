@@ -31,3 +31,13 @@ async def cache_set(key: str, value: dict | list, ttl: int | None = None) -> Non
         await get_redis().setex(key, ttl or settings.cache_ttl, json.dumps(value))
     except Exception as e:
         logger.warning("Cache SET failed for %s: %s", key, e)
+
+
+async def cache_delete_prefix(prefix: str) -> None:
+    try:
+        r = get_redis()
+        keys = await r.keys(f"{prefix}*")
+        if keys:
+            await r.delete(*keys)
+    except Exception as e:
+        logger.warning("Cache DELETE prefix failed for %s: %s", prefix, e)

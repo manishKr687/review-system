@@ -1,4 +1,4 @@
-import { apiFetch } from './client'
+import { apiFetch, apiPost } from './client'
 import type { ApiProduct, Category, ProductsResponse, ReviewsResponse } from './types'
 
 export const API_ENABLED = Boolean(import.meta.env.VITE_API_URL)
@@ -54,6 +54,17 @@ export function fetchCategories(): Promise<Category[]> {
 }
 
 export type RecommendationType = 'top_rated' | 'best_value' | 'trending' | 'gaming' | 'photography' | 'travel'
+
+export interface ReviewPayload {
+  author: string
+  rating: number
+  title: string
+  body: string
+}
+
+export function submitReview(productId: number, payload: ReviewPayload): Promise<import('./types').ApiReview> {
+  return apiPost(`/api/reviews/${productId}`, payload)
+}
 
 export function fetchRecommendations(
   type: RecommendationType = 'top_rated',

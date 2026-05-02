@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, PenLine, Bell, ChevronDown, Menu } from 'lucide-react';
+import WriteReviewModal from './WriteReviewModal';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   const handleSearch = () => {
     const q = query.trim();
@@ -20,6 +22,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
+    <>
     <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center gap-3 md:gap-4 flex-shrink-0 z-10">
 
       {/* Hamburger — mobile only */}
@@ -55,7 +58,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
       <div className="hidden md:block w-px h-6 bg-gray-200" />
 
       {/* Write a Review — hidden on small screens */}
-      <button className="hidden md:flex items-center gap-2 text-sm text-gray-600 font-medium hover:text-indigo-600 transition-colors flex-shrink-0 whitespace-nowrap">
+      <button
+        onClick={() => setShowModal(true)}
+        className="hidden md:flex items-center gap-2 text-sm text-gray-600 font-medium hover:text-indigo-600 transition-colors flex-shrink-0 whitespace-nowrap"
+      >
         <PenLine className="w-4 h-4" />
         Write a Review
       </button>
@@ -78,5 +84,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </button>
 
     </header>
+
+    {showModal && <WriteReviewModal onClose={() => setShowModal(false)} />}
+  </>
   );
 }

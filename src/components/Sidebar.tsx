@@ -1,16 +1,18 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, Star, LayoutGrid, GitCompare, MessageSquare,
   FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine, Settings, X,
 } from 'lucide-react';
+import WriteReviewModal from './WriteReviewModal';
 
 const navItems = [
   { icon: Home,          label: 'Home',        path: '/'          },
-  { icon: Star,          label: 'Top Rated',   path: '/categories?sort=rated' },
+  { icon: Star,          label: 'Top Rated',   path: '/top-rated' },
   { icon: LayoutGrid,    label: 'Categories',  path: '/categories' },
   { icon: GitCompare,    label: 'Compare',     path: '/compare'   },
   { icon: MessageSquare, label: 'Review Feed', path: '/search'    },
-  { icon: FileEdit,      label: 'My Reviews',  path: '/watchlist' },
+  { icon: FileEdit,      label: 'My Reviews',  path: '/my-reviews' },
   { icon: Heart,         label: 'Watchlist',   path: '/watchlist' },
   { icon: Bell,          label: 'Alerts',      path: '/'          },
 ];
@@ -52,7 +54,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const [showModal, setShowModal] = useState(false);
   return (
+    <>
     <aside
       className={`
         fixed inset-y-0 left-0 z-30 w-60 bg-white border-r border-gray-100 flex flex-col h-screen flex-shrink-0
@@ -112,7 +116,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               ✍️
             </div>
           </div>
-          <button className="w-full bg-white text-indigo-600 rounded-lg py-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors">
+          <button
+            onClick={() => setShowModal(true)}
+            className="w-full bg-white text-indigo-600 rounded-lg py-2 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors"
+          >
             <PenLine className="w-3.5 h-3.5" />
             Write a Review
           </button>
@@ -120,5 +127,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
 
     </aside>
+
+    {showModal && <WriteReviewModal onClose={() => setShowModal(false)} />}
+  </>
   );
 }

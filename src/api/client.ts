@@ -11,3 +11,16 @@ export async function apiFetch<T>(path: string): Promise<T> {
   if (!res.ok) throw new ApiError(res.status, `API ${res.status}: ${path}`)
   return res.json() as Promise<T>
 }
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new ApiError(res.status, text || `API ${res.status}: ${path}`)
+  }
+  return res.json() as Promise<T>
+}

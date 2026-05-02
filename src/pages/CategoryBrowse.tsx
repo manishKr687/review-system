@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { useProducts, useCategories } from '../hooks/useProducts';
@@ -23,10 +23,12 @@ function priceInRange(priceRange: string, filter: PriceRange): boolean {
 
 export default function CategoryBrowse() {
   const [searchParams] = useSearchParams();
-  const categoryParam   = searchParams.get('category') ?? '';
+  const { pathname } = useLocation();
+  const categoryParam = searchParams.get('category') ?? '';
+  const defaultSort: SortOption = pathname === '/top-rated' ? 'rated' : 'best';
 
   const [activeCategory, setActiveCategory] = useState(categoryParam || 'All');
-  const [sort,      setSort]      = useState<SortOption>('best');
+  const [sort,      setSort]      = useState<SortOption>(defaultSort);
   const [price,     setPrice]     = useState<PriceRange>('all');
   const [minRating, setMinRating] = useState<MinRating>('all');
 

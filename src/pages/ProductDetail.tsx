@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp, AlertTriangle, PenLine } from 'lucide-react';
+import WriteReviewModal from '../components/WriteReviewModal';
 import StarRating from '../components/StarRating';
 import { useStore } from '../store/useStore';
 import { useProduct, useReviews } from '../hooks/useProducts';
@@ -17,6 +18,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('overview');
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
+  const [showWriteModal, setShowWriteModal] = useState(false);
 
   const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
 
@@ -53,6 +55,7 @@ export default function ProductDetail() {
   const aspects     = Object.entries(product.aspects).filter(([, v]) => v > 0);
 
   return (
+    <>
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto p-6 space-y-6">
 
@@ -84,7 +87,7 @@ export default function ProductDetail() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex gap-2 flex-shrink-0">
+              <div className="flex flex-wrap gap-2 flex-shrink-0">
                 <button
                   onClick={() => toggleWatchlist(product.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
@@ -106,6 +109,13 @@ export default function ProductDetail() {
                 >
                   <GitCompare className="w-4 h-4" />
                   {inCompare ? 'In Compare' : 'Compare'}
+                </button>
+                <button
+                  onClick={() => setShowWriteModal(true)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:border-indigo-200 hover:text-indigo-600 transition-all"
+                >
+                  <PenLine className="w-4 h-4" />
+                  Write a Review
                 </button>
               </div>
             </div>
@@ -270,5 +280,13 @@ export default function ProductDetail() {
         )}
       </div>
     </div>
+
+    {showWriteModal && (
+      <WriteReviewModal
+        onClose={() => setShowWriteModal(false)}
+        prefilledProduct={{ id: product.id, name: product.name }}
+      />
+    )}
+    </>
   );
 }

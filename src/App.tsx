@@ -18,10 +18,12 @@ export default function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="product/:id" element={<ProductDetail />} />
-          <Route path="categories" element={<CategoryBrowse />} />
+          <Route path="categories" element={<CategoryBrowse key="categories" />} />
+          <Route path="top-rated" element={<CategoryBrowse key="top-rated" />} />
           <Route path="compare" element={<Compare />} />
           <Route path="search" element={<SearchResults />} />
           <Route path="watchlist" element={<Watchlist />} />
+          <Route path="my-reviews" element={<Watchlist />} />
         </Route>
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>

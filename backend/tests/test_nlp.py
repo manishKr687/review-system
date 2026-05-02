@@ -2,7 +2,7 @@
 Pure unit tests for the NLP service — no database or HTTP involved.
 """
 import pytest
-from app.services.nlp import analyse_sentiment, extract_aspect_sentiments, score_to_aspect_rating
+from app.services.nlp import analyse_sentiment, detect_suspicious, extract_aspect_sentiments, score_to_aspect_rating
 
 
 class TestAnalyseSentiment:
@@ -101,3 +101,74 @@ class TestScoreToAspectRating:
     def test_output_clamped_to_range(self):
         assert score_to_aspect_rating(999) == 5.0
         assert score_to_aspect_rating(-999) == 1.0
+
+
+class TestDetectSuspicious:
+
+    # ── Should be flagged ────────────────────────────────────────────────────
+
+    def test_flags_very_short_review(self):
+        assert detect_suspicious("Great product!", 5.0) is True
+
+    def test_flags_review_under_8_words(self):
+        # exactly 7 words — should be flagged
+        assert detect_suspicious("Best phone I have ever bought!", 5.0) is True
+
+    def test_flags_all_caps_text(self):
+        text = "THIS PHONE IS ABSOLUTELY THE BEST I HAVE EVER USED IN MY LIFE"
+        assert detect_suspicious(text, 5.0) is True
+
+    def test_flags_star_sentiment_mismatch_positive_rating_negative_text(self):
+        # 5 stars but clearly negative body
+        text = (
+            "Absolutely terrible device. The battery drains overnight, the screen "
+            "cracked after a week, and customer support was awful and unhelpful."
+        )
+        assert detect_suspicious(text, 5.0) is True
+
+    def test_flags_star_sentiment_mismatch_negative_rating_positive_text(self):
+        # 1 star but clearly positive body
+        text = (
+            "This is hands down the most incredible smartphone I have ever owned. "
+            "The camera is stunning, battery is outstanding, and performance is flawless!"
+        )
+        assert detect_suspicious(text, 1.0) is True
+
+    def test_flags_hyperbolic_short_review(self):
+        # < 20 words, compound will be > 0.95
+        text = "Absolutely perfect! Best ever! Amazing! Love love love this!! Outstanding!!"
+        assert detect_suspicious(text, 5.0) is True
+
+    # ── Should NOT be flagged ────────────────────────────────────────────────
+
+    def test_clean_positive_review_passes(self):
+        text = (
+            "I have been using this phone for three months and I am very impressed. "
+            "The camera quality is excellent for the price, and the battery easily "
+            "lasts a full day of heavy use. Build quality feels premium."
+        )
+        assert detect_suspicious(text, 5.0) is False
+
+    def test_clean_negative_review_passes(self):
+        text = (
+            "The battery life is disappointing — barely lasts six hours with moderate use. "
+            "The camera underperforms in low light and the software has several bugs. "
+            "Overall I would not recommend this at this price point."
+        )
+        assert detect_suspicious(text, 2.0) is False
+
+    def test_clean_neutral_review_passes(self):
+        text = (
+            "The phone arrived on time and was well packaged. Performance is average "
+            "for the price range. The display is decent and the camera is acceptable. "
+            "Nothing extraordinary but it gets the job done."
+        )
+        assert detect_suspicious(text, 3.0) is False
+
+    def test_mixed_case_normal_text_passes(self):
+        # Some capitals but not majority — should not trip the all-caps rule
+        text = (
+            "Great Camera quality! Battery Life is decent. "
+            "Performance could be better but overall I am satisfied with this purchase."
+        )
+        assert detect_suspicious(text, 4.0) is False

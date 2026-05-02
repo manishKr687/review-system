@@ -1,6 +1,7 @@
 import HeroSection from '../components/HeroSection';
 import CategoryPills from '../components/CategoryPills';
 import TopReviewedProducts from '../components/TopReviewedProducts';
+import BestForSection from '../components/BestForSection';
 import ReviewInsights from '../components/ReviewInsights';
 import ReviewSummaryPanel from '../components/ReviewSummaryPanel';
 
@@ -12,6 +13,7 @@ export default function Home() {
         <HeroSection />
         <CategoryPills />
         <TopReviewedProducts />
+        <BestForSection />
         <ReviewInsights />
       </main>
 

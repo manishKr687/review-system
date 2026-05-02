@@ -52,3 +52,15 @@ export function searchProducts(q: string): Promise<ProductsResponse> {
 export function fetchCategories(): Promise<Category[]> {
   return apiFetch<Category[]>('/api/categories')
 }
+
+export type RecommendationType = 'top_rated' | 'best_value' | 'trending' | 'gaming' | 'photography' | 'travel'
+
+export function fetchRecommendations(
+  type: RecommendationType = 'top_rated',
+  limit = 8,
+  category?: string,
+): Promise<ApiProduct[]> {
+  const qs = new URLSearchParams({ type, limit: String(limit) })
+  if (category) qs.set('category', category)
+  return apiFetch<ApiProduct[]>(`/api/recommendations?${qs}`)
+}

@@ -9,6 +9,7 @@ from app.models.product import Product
 from app.models.review import Review
 from app.services.cache import cache_delete_prefix
 from app.tasks.analysis import analyse_all_reviews
+from app.tasks.scoring import compute_all_scores
 
 router = APIRouter()
 
@@ -171,4 +172,14 @@ async def trigger_analysis():
         task_id=task.id,
         status="queued",
         message="NLP re-analysis started. Poll /api/analyse/status/{task_id} for progress.",
+    )
+
+
+@router.post("/compute-scores", response_model=AnalyseResponse, dependencies=[Depends(require_admin)])
+async def trigger_scoring():
+    task = compute_all_scores.delay()
+    return AnalyseResponse(
+        task_id=task.id,
+        status="queued",
+        message="Score computation started. Poll /api/analyse/status/{task_id} for progress.",
     )

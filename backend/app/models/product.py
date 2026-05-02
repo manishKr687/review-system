@@ -20,5 +20,6 @@ class Product(Base):
     pros: Mapped[list] = mapped_column(JSON, default=list)
     cons: Mapped[list] = mapped_column(JSON, default=list)
     highlights: Mapped[list] = mapped_column(JSON, default=list)
+    scores: Mapped[dict] = mapped_column(JSON, default=dict)
 
     reviews: Mapped[list["Review"]] = relationship(back_populates="product", lazy="select")

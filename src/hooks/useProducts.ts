@@ -6,8 +6,10 @@ import {
   fetchProduct,
   fetchProducts,
   fetchReviews,
+  fetchRecommendations,
   fetchTopReviewed,
   searchProducts as apiFetchSearch,
+  type RecommendationType,
 } from '../api/products'
 import type { ApiProduct, ApiReview } from '../api/types'
 import {
@@ -212,6 +214,39 @@ export function useSearch(query: string) {
       return res.products.map((p, i) => adaptProduct(p, i + 1))
     },
     [query],
+  )
+}
+
+// Mock recommendation fallback — derives rankings from static product data
+function mockRecommendations(type: RecommendationType, limit: number, category?: string): Product[] {
+  let pool = category ? allProducts.filter(p => p.category === category) : [...allProducts]
+  switch (type) {
+    case 'top_rated':   pool.sort((a, b) => b.rating - a.rating); break
+    case 'best_value':  pool.sort((a, b) => b.rating - a.rating); break  // no price in mock
+    case 'trending':    pool.sort((a, b) => b.reviewCount - a.reviewCount); break
+    case 'gaming':      pool.sort((a, b) => ((b.aspects.performance ?? 0) + (b.aspects.display ?? 0)) - ((a.aspects.performance ?? 0) + (a.aspects.display ?? 0))); break
+    case 'photography': pool.sort((a, b) => (b.aspects.camera ?? 0) - (a.aspects.camera ?? 0)); break
+    case 'travel':      pool.sort((a, b) => (b.aspects.battery ?? 0) - (a.aspects.battery ?? 0)); break
+  }
+  return pool.slice(0, limit)
+}
+
+export function useRecommendations(
+  type: RecommendationType = 'top_rated',
+  limit = 8,
+  category?: string,
+) {
+  const mockValue = useMemo(
+    () => mockRecommendations(type, limit, category),
+    [type, limit, category],
+  )
+  return useDualMode(
+    mockValue,
+    async () => {
+      const list = await fetchRecommendations(type, limit, category)
+      return list.map((p, i) => adaptProduct(p, i + 1))
+    },
+    [type, limit, category],
   )
 }
 

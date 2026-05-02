@@ -6,7 +6,7 @@ celery_app = Celery(
     "reviewlens",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks.analysis"],
+    include=["app.tasks.analysis", "app.tasks.scoring"],
 )
 
 celery_app.conf.update(

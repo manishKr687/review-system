@@ -71,7 +71,11 @@ export default function TopReviewedProducts() {
           </div>
         )}
 
-        <button className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:border-indigo-300 hover:shadow-lg transition-all">
+        <button
+          onClick={() => navigate('/categories')}
+          title="View all products"
+          className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center hover:border-indigo-300 hover:shadow-lg transition-all"
+        >
           <ChevronRight className="w-4 h-4 text-gray-500" />
         </button>
       </div>

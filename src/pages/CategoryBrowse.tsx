@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
@@ -29,6 +29,10 @@ export default function CategoryBrowse() {
 
   const [activeCategory, setActiveCategory] = useState(categoryParam || 'All');
   const [sort,      setSort]      = useState<SortOption>(defaultSort);
+
+  useEffect(() => {
+    if (categoryParam) setActiveCategory(categoryParam);
+  }, [categoryParam]);
   const [price,     setPrice]     = useState<PriceRange>('all');
   const [minRating, setMinRating] = useState<MinRating>('all');
 

@@ -1,4 +1,5 @@
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StarRating from './StarRating';
 import {
   overallRating, totalReviewCount,
@@ -10,6 +11,8 @@ function formatIndianNumber(n: number) {
 }
 
 export default function ReviewSummaryPanel() {
+  const navigate = useNavigate();
+
   return (
     <aside className="w-72 flex-shrink-0 bg-white border-l border-gray-100 overflow-y-auto">
       <div className="p-5 space-y-6">
@@ -46,7 +49,10 @@ export default function ReviewSummaryPanel() {
             ))}
           </div>
 
-          <button className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors">
+          <button
+            onClick={() => navigate('/categories')}
+            className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors"
+          >
             See all reviews <ArrowRight className="w-3 h-3" />
           </button>
         </section>
@@ -64,7 +70,10 @@ export default function ReviewSummaryPanel() {
               </div>
             ))}
           </div>
-          <button className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors">
+          <button
+            onClick={() => navigate('/search?q=best')}
+            className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors"
+          >
             View all insights <ArrowRight className="w-3 h-3" />
           </button>
         </section>
@@ -78,6 +87,7 @@ export default function ReviewSummaryPanel() {
             {recentlyAnalyzed.map((item) => (
               <button
                 key={item.id}
+                onClick={() => navigate(`/product/${item.id}`)}
                 className="w-full flex items-center gap-3 hover:bg-gray-50 rounded-lg p-1.5 -mx-1.5 transition-colors group"
               >
                 {/* Thumbnail */}
@@ -100,7 +110,10 @@ export default function ReviewSummaryPanel() {
             ))}
           </div>
 
-          <button className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors">
+          <button
+            onClick={() => navigate('/top-rated')}
+            className="flex items-center gap-1 text-xs text-indigo-600 font-medium mt-3 hover:text-indigo-800 transition-colors"
+          >
             View all <ArrowRight className="w-3 h-3" />
           </button>
         </section>

@@ -1,8 +1,6 @@
 import { apiFetch, apiPost } from './client'
 import type { ApiProduct, Category, ProductsResponse, ReviewsResponse } from './types'
 
-export const API_ENABLED = Boolean(import.meta.env.VITE_API_URL)
-
 export function fetchProducts(params: {
   category?: string
   min_rating?: number

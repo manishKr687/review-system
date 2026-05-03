@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Star, Loader2, CheckCircle2 } from 'lucide-react';
-import { API_ENABLED, submitReview } from '../api/products';
+import { submitReview } from '../api/products';
 import { useSearch } from '../hooks/useProducts';
 import type { Product } from '../data/mockData';
 
@@ -94,9 +94,7 @@ export default function WriteReviewModal({ onClose, prefilledProduct }: Props) {
     setSubmitting(true);
     setError('');
     try {
-      if (API_ENABLED) {
-        await submitReview(selectedProduct!.id, { author, rating, title, body });
-      }
+      await submitReview(selectedProduct!.id, { author, rating, title, body });
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed. Please try again.');

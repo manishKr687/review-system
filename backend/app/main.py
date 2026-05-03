@@ -2,7 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from app.config import settings
+from app.limiter import limiter
 from app.routers import admin, analysis, categories, products, recommendations, reviews, search, stats
 
 
@@ -12,9 +16,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="ReviewLens API", version="1.0.0", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+_cors_origins = settings.cors_origins
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=_cors_origins,
     allow_origin_regex=r"http://localhost:\d+",
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],

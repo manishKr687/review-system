@@ -74,9 +74,6 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <p className="text-[11px] text-gray-400 mt-6 text-center">
-          Default key: <code className="bg-gray-100 px-1 rounded">reviewlens-admin</code>
-        </p>
       </div>
     </div>
   )

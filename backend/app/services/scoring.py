@@ -31,16 +31,23 @@ class ReviewStats(NamedTuple):
     recent: int          # reviews in last 180 days
 
 
+_PRIOR_MEAN = 0.70   # assumed quality for an unreviewed product (3.5 / 5)
+_MIN_VOTES  = 5      # weight of the prior; fades after ~5 real reviews
+
+
 def compute_scores(
     rating: float,
     price: float,
     stats: ReviewStats,
 ) -> dict:
+    # Bayesian-adjusted normalised rating: pulls low-count products toward prior
+    raw_norm   = rating / 5.0
+    norm_rating = (stats.total * raw_norm + _MIN_VOTES * _PRIOR_MEAN) / (stats.total + _MIN_VOTES)
+
     if stats.total == 0:
-        return {"composite": round(rating / 5, 4), "sentiment": 0.0,
+        return {"composite": round(norm_rating, 4), "sentiment": 0.0,
                 "credibility": 0.0, "recency": 0.0, "value": 0.0}
 
-    norm_rating   = rating / 5.0
     sentiment     = stats.positive / stats.total
     verified_pct  = stats.verified / stats.total
     avg_helpful   = stats.total_helpful / stats.total

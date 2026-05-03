@@ -1,7 +1,7 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -12,6 +12,9 @@ from app.services.cache import cache_get, cache_set
 router = APIRouter()
 
 SortOption = Literal["rating", "price_asc", "price_desc", "reviews"]
+
+# Reusable ORDER BY expression — extracts scores->>'composite' as float
+_COMPOSITE_DESC = text("(scores->>'composite')::float DESC NULLS LAST")
 
 
 @router.get("", response_model=ProductsResponse)
@@ -36,10 +39,10 @@ async def list_products(
         q = q.where(Product.category == category)
 
     sort_col = {
-        "rating": Product.rating.desc(),
-        "price_asc": Product.price.asc(),
+        "rating":     _COMPOSITE_DESC,
+        "price_asc":  Product.price.asc(),
         "price_desc": Product.price.desc(),
-        "reviews": Product.review_count.desc(),
+        "reviews":    Product.review_count.desc(),
     }[sort]
 
     total_q = select(func.count()).select_from(q.subquery())
@@ -58,7 +61,7 @@ async def get_featured(db: AsyncSession = Depends(get_db)):
         return cached
 
     row = (await db.execute(
-        select(Product).order_by(Product.rating.desc(), Product.review_count.desc()).limit(1)
+        select(Product).order_by(_COMPOSITE_DESC).limit(1)
     )).scalar_one_or_none()
 
     if not row:
@@ -79,7 +82,7 @@ async def top_reviewed(
     if cached := await cache_get(cache_key):
         return cached
 
-    q = select(Product).order_by(Product.rating.desc())
+    q = select(Product).order_by(_COMPOSITE_DESC)
     if category:
         q = q.where(Product.category == category)
 

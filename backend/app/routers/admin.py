@@ -253,8 +253,9 @@ async def approve_review(review_id: int, body: ApproveBody, db: AsyncSession = D
         product.rating = round(sum(r.rating for r in approved) / len(approved), 1) if approved else 0.0
 
         await db.refresh(product)
-        from app.routers.reviews import _recompute_aspects
+        from app.routers.reviews import _recompute_aspects, _recompute_scores
         await _recompute_aspects(product, db)
+        await _recompute_scores(product, db)
 
     await db.commit()
     await db.refresh(review)

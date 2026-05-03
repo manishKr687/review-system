@@ -13,6 +13,7 @@ from app.models.review import Review
 from app.schemas.review import MyReviewOut, ReviewCreate, ReviewOut, ReviewsResponse
 from app.services.cache import cache_delete_prefix, cache_get, cache_set, get_redis
 from app.services.nlp import analyse_sentiment, detect_suspicious, extract_aspect_sentiments
+from app.services.scoring import ReviewStats, compute_scores
 
 router = APIRouter()
 
@@ -31,6 +32,22 @@ async def _enforce_rate_limit(ip: str) -> None:
             status_code=429,
             detail=f"Rate limit exceeded. Max {_REVIEW_RATE_LIMIT} reviews per hour.",
         )
+
+
+async def _recompute_scores(product: Product, db: AsyncSession) -> None:
+    """Recompute composite + sub-scores and persist to product.scores."""
+    reviews = (await db.execute(
+        select(Review).where(Review.product_id == product.id, Review.status == "approved")
+    )).scalars().all()
+    stats = ReviewStats(
+        total         = len(reviews),
+        positive      = sum(1 for r in reviews if r.sentiment == "positive"),
+        verified      = sum(1 for r in reviews if r.verified),
+        total_helpful = sum(r.helpful or 0 for r in reviews),
+        recent        = len(reviews),  # all reviews count as recent initially
+    )
+    product.scores = compute_scores(product.rating, product.price, stats)
+    attributes.flag_modified(product, "scores")
 
 
 async def _recompute_aspects(product: Product, db: AsyncSession) -> None:
@@ -175,9 +192,10 @@ async def create_review(
     await db.refresh(review)
     await db.refresh(product)  # re-hydrate after commit expiry
 
-    # Recompute aspect scores from all approved reviews
+    # Recompute aspect scores and composite ranking score
     if review_status == "approved":
         await _recompute_aspects(product, db)
+        await _recompute_scores(product, db)
         await db.commit()
 
     await cache_delete_prefix(f"reviews:{product_id}:")
@@ -218,6 +236,7 @@ async def delete_review(
         product.rating = round(sum(r.rating for r in remaining) / len(remaining), 1) if remaining else 0.0
         await db.refresh(product)
         await _recompute_aspects(product, db)
+        await _recompute_scores(product, db)
         await db.commit()
 
     await cache_delete_prefix(f"reviews:{product_id}:")

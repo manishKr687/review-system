@@ -13,6 +13,7 @@ async def seed_products(db: AsyncSession, n: int = 3) -> list[Product]:
             price=100.0 * i, rating=3.0 + (i * 0.5 % 2),
             review_count=i * 10, icon="📱", quote=f"Quote {i}",
             aspects={}, pros=[], cons=[], highlights=[],
+            composite_score=(3.0 + (i * 0.5 % 2)) / 5.0,
         )
         for i in range(1, n + 1)
     ]

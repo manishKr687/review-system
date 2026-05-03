@@ -1,7 +1,7 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -13,8 +13,7 @@ router = APIRouter()
 
 SortOption = Literal["rating", "price_asc", "price_desc", "reviews"]
 
-# Reusable ORDER BY expression — extracts scores->>'composite' as float
-_COMPOSITE_DESC = text("(scores->>'composite')::float DESC NULLS LAST")
+_COMPOSITE_DESC = Product.composite_score.desc()
 
 
 @router.get("", response_model=ProductsResponse)

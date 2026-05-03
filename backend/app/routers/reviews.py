@@ -48,6 +48,7 @@ async def _recompute_scores(product: Product, db: AsyncSession) -> None:
     )
     product.scores = compute_scores(product.rating, product.price, stats)
     attributes.flag_modified(product, "scores")
+    product.composite_score = product.scores["composite"]
 
 
 async def _recompute_aspects(product: Product, db: AsyncSession) -> None:

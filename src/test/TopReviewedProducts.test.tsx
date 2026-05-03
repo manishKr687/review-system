@@ -6,7 +6,6 @@ import TopReviewedProducts from '../components/TopReviewedProducts'
 import { mockProduct, mockProduct2 } from './fixtures'
 
 vi.mock('../hooks/useProducts', () => ({
-  useTopReviewed:     () => ({ data: [mockProduct, mockProduct2], loading: false, error: null }),
   useRecommendations: () => ({ data: [mockProduct, mockProduct2], loading: false, error: null }),
 }))
 

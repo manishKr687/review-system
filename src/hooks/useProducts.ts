@@ -39,12 +39,7 @@ function adaptProduct(p: ApiProduct, rank = 0): Product {
     rank,
     icon: p.icon,
     quote: p.quote,
-    aspects: {
-      camera:      p.aspects.camera      ?? 0,
-      battery:     p.aspects.battery     ?? 0,
-      performance: p.aspects.performance ?? 0,
-      display:     p.aspects.display     ?? 0,
-    },
+    aspects: p.aspects,
     ...colors,
     scores: p.scores as RecommendationScores | undefined,
   }

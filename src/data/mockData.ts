@@ -5,6 +5,7 @@ export interface AspectScores {
   battery: number;
   performance: number;
   display: number;
+  [key: string]: number;
 }
 
 export interface RecommendationScores {

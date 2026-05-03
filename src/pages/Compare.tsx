@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { X, Plus, Trophy } from 'lucide-react';
 import StarRating from '../components/StarRating';
 import { useStore } from '../store/useStore';
-import { getProductById, getProductSummary, allProducts } from '../data/mockData';
+import { useProducts } from '../hooks/useProducts';
 
-const aspectKeys  = ['camera', 'battery', 'performance', 'display'] as const;
+const aspectKeys   = ['camera', 'battery', 'performance', 'display'] as const;
 const aspectLabels = { camera: 'Camera', battery: 'Battery', performance: 'Performance', display: 'Display' };
 
 type AspectKey = typeof aspectKeys[number];
@@ -15,14 +15,11 @@ function getBestValue(values: number[]): number {
 
 export default function Compare() {
   const navigate = useNavigate();
-  const { compareList, removeFromCompare, clearCompare } = useStore();
+  const { compareList, removeFromCompare, clearCompare, addToCompare } = useStore();
+  const { data: allProducts = [], loading } = useProducts();
 
-  const products = compareList.map(id => getProductById(id)).filter(Boolean) as NonNullable<ReturnType<typeof getProductById>>[];
-  const emptySlots = Math.max(0, 2 - products.length); // show at least 2 columns
-
-  const suggestions = allProducts
-    .filter(p => !compareList.includes(p.id))
-    .slice(0, 4);
+  const products    = allProducts.filter(p => compareList.includes(p.id));
+  const suggestions = allProducts.filter(p => !compareList.includes(p.id)).slice(0, 4);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -35,17 +32,19 @@ export default function Compare() {
             <p className="text-sm text-gray-400 mt-0.5">{products.length} of 4 products selected</p>
           </div>
           {products.length > 0 && (
-            <button
-              onClick={clearCompare}
-              className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
-            >
+            <button onClick={clearCompare} className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors">
               Clear All
             </button>
           )}
         </div>
 
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="bg-gray-100 rounded-2xl h-64 animate-pulse" />
+        )}
+
         {/* Empty state */}
-        {products.length === 0 && (
+        {!loading && products.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center mb-6">
             <p className="text-5xl mb-4">⚖️</p>
             <h2 className="text-lg font-bold text-gray-900 mb-2">No products to compare</h2>
@@ -57,11 +56,10 @@ export default function Compare() {
         )}
 
         {/* Comparison table */}
-        {products.length > 0 && (
+        {!loading && products.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
             <div className="overflow-x-auto">
               <table className="w-full">
-                {/* Product headers */}
                 <thead>
                   <tr className="border-b border-gray-100">
                     <th className="text-left p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider w-36">Feature</th>
@@ -81,7 +79,6 @@ export default function Compare() {
                         </button>
                       </th>
                     ))}
-                    {/* Empty slot */}
                     {products.length < 4 && (
                       <th className="p-4 text-center min-w-[160px]">
                         <button
@@ -97,11 +94,11 @@ export default function Compare() {
                 </thead>
 
                 <tbody>
-                  {/* Overall rating row */}
+                  {/* Overall rating */}
                   <tr className="border-b border-gray-50 bg-indigo-50/30">
                     <td className="p-4 text-sm font-semibold text-gray-700">Overall Rating</td>
                     {products.map(p => {
-                      const best = getBestValue(products.map(x => x.rating));
+                      const best   = getBestValue(products.map(x => x.rating));
                       const isBest = p.rating === best;
                       return (
                         <td key={p.id} className="p-4 text-center">
@@ -115,14 +112,14 @@ export default function Compare() {
 
                   {/* Aspect rows */}
                   {aspectKeys.map((key, i) => {
-                    const values = products.map(p => p.aspects[key as AspectKey]);
+                    const values = products.map(p => (p.aspects as Record<string, number>)[key] ?? 0);
                     const best   = getBestValue(values);
                     return (
                       <tr key={key} className={`border-b border-gray-50 ${i % 2 === 0 ? '' : 'bg-gray-50/50'}`}>
-                        <td className="p-4 text-sm font-medium text-gray-600">{aspectLabels[key as AspectKey]}</td>
+                        <td className="p-4 text-sm font-medium text-gray-600">{aspectLabels[key]}</td>
                         {products.map(p => {
-                          const score   = p.aspects[key as AspectKey];
-                          const isBest  = score > 0 && score === best;
+                          const score  = (p.aspects as Record<string, number>)[key] ?? 0;
+                          const isBest = score > 0 && score === best;
                           return (
                             <td key={p.id} className="p-4 text-center">
                               {score > 0 ? (
@@ -147,51 +144,11 @@ export default function Compare() {
                   })}
 
                   {/* Price row */}
-                  <tr className="border-b border-gray-50">
-                    <td className="p-4 text-sm font-medium text-gray-600">Price Range</td>
+                  <tr>
+                    <td className="p-4 text-sm font-medium text-gray-600">Price</td>
                     {products.map(p => (
                       <td key={p.id} className="p-4 text-center text-sm font-semibold text-indigo-600">{p.priceRange}</td>
                     ))}
-                    {products.length < 4 && <td />}
-                  </tr>
-
-                  {/* Pros row */}
-                  <tr className="border-b border-gray-50">
-                    <td className="p-4 text-sm font-medium text-gray-600 align-top pt-4">Top Pros</td>
-                    {products.map(p => {
-                      const summary = getProductSummary(p.id);
-                      return (
-                        <td key={p.id} className="p-4 align-top">
-                          <ul className="space-y-1">
-                            {(summary?.pros.slice(0, 3) ?? []).map((pro, i) => (
-                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                                <span className="text-emerald-500 flex-shrink-0">✓</span> {pro}
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                      );
-                    })}
-                    {products.length < 4 && <td />}
-                  </tr>
-
-                  {/* Cons row */}
-                  <tr>
-                    <td className="p-4 text-sm font-medium text-gray-600 align-top pt-4">Top Cons</td>
-                    {products.map(p => {
-                      const summary = getProductSummary(p.id);
-                      return (
-                        <td key={p.id} className="p-4 align-top">
-                          <ul className="space-y-1">
-                            {(summary?.cons.slice(0, 3) ?? []).map((con, i) => (
-                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1">
-                                <span className="text-red-400 flex-shrink-0">✗</span> {con}
-                              </li>
-                            ))}
-                          </ul>
-                        </td>
-                      );
-                    })}
                     {products.length < 4 && <td />}
                   </tr>
                 </tbody>
@@ -201,14 +158,14 @@ export default function Compare() {
         )}
 
         {/* Suggestions */}
-        {products.length < 4 && suggestions.length > 0 && (
+        {!loading && products.length < 4 && suggestions.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Suggested products to compare</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {suggestions.map(p => (
                 <button
                   key={p.id}
-                  onClick={() => { useStore.getState().addToCompare(p.id); }}
+                  onClick={() => addToCompare(p.id)}
                   className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 text-left hover:border-indigo-200 hover:shadow-md transition-all group"
                 >
                   <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${p.bgFrom} ${p.bgTo} flex items-center justify-center text-2xl mb-2`}>

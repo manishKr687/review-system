@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import admin, analysis, categories, products, recommendations, reviews, search
+from app.routers import admin, analysis, categories, products, recommendations, reviews, search, stats
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ app.include_router(categories.router, prefix="/api/categories", tags=["categorie
 app.include_router(analysis.router, prefix="/api/analyse", tags=["analysis"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["recommendations"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(stats.router, prefix="/api/stats", tags=["stats"])
 
 
 @app.get("/api/health")

@@ -6,6 +6,7 @@ export interface AspectScores {
   audio: number
   build: number
   value: number
+  [key: string]: number
 }
 
 export interface RecommendationScores {

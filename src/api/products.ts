@@ -55,6 +55,18 @@ export function fetchCategories(): Promise<Category[]> {
 
 export type RecommendationType = 'top_rated' | 'best_value' | 'trending' | 'gaming' | 'photography' | 'travel'
 
+export interface SiteStats {
+  total_reviews: number
+  total_products: number
+  avg_rating: number
+  positive_pct: number
+  star_distribution: { star: number; percent: number }[]
+}
+
+export function fetchStats(): Promise<SiteStats> {
+  return apiFetch<SiteStats>('/api/stats')
+}
+
 export interface ReviewPayload {
   author: string
   rating: number

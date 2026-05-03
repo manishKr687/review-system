@@ -7,9 +7,11 @@ import {
   fetchProducts,
   fetchReviews,
   fetchRecommendations,
+  fetchStats,
   fetchTopReviewed,
   searchProducts as apiFetchSearch,
   type RecommendationType,
+  type SiteStats,
 } from '../api/products'
 import type { ApiProduct, ApiReview } from '../api/types'
 import {
@@ -101,7 +103,7 @@ function useDualMode<T>(
     setApiState({ data: undefined, loading: true, error: null })
     apiFetcher()
       .then(d => { if (!cancelled) setApiState({ data: d, loading: false, error: null }) })
-      .catch(e => { if (!cancelled) setApiState({ data: null, loading: false, error: String(e) }) })
+      .catch(e => { if (!cancelled) setApiState({ data: undefined, loading: false, error: String(e) }) })
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, apsDeps)
@@ -250,6 +252,23 @@ export function useRecommendations(
     },
     [type, limit, category],
   )
+}
+
+export function useStats() {
+  const mockValue = useMemo<SiteStats>(() => ({
+    total_reviews: 5000,
+    total_products: 100,
+    avg_rating: 4.5,
+    positive_pct: 72,
+    star_distribution: [
+      { star: 5, percent: 42 },
+      { star: 4, percent: 33 },
+      { star: 3, percent: 14 },
+      { star: 2, percent: 7 },
+      { star: 1, percent: 4 },
+    ],
+  }), [])
+  return useDualMode(mockValue, () => fetchStats(), [])
 }
 
 export function useCategories() {

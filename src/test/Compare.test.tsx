@@ -1,15 +1,22 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import Compare from '../pages/Compare'
 import { useStore } from '../store/useStore'
+import { mockProduct, mockProduct2 } from './fixtures'
+
+vi.mock('../hooks/useProducts', () => ({
+  useProducts: () => ({
+    data: [mockProduct, { ...mockProduct2, pros: [], cons: [], highlights: [] }],
+    loading: false,
+    error: null,
+  }),
+}))
 
 const renderComp = () => render(<MemoryRouter><Compare /></MemoryRouter>)
 
 describe('Compare', () => {
-
   beforeEach(() => {
-    // Reset Zustand store before each test
     useStore.setState({ compareList: [] })
   })
 
@@ -41,5 +48,4 @@ describe('Compare', () => {
     renderComp()
     expect(screen.getByText('Clear All')).toBeInTheDocument()
   })
-
 })

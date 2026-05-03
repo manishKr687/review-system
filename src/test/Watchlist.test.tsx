@@ -1,12 +1,21 @@
 import { render, screen } from '@testing-library/react'
+import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import Watchlist from '../pages/Watchlist'
 import { useStore } from '../store/useStore'
+import { mockProduct, mockProduct2 } from './fixtures'
+
+vi.mock('../hooks/useProducts', () => ({
+  useProducts: () => ({
+    data: [mockProduct, { ...mockProduct2, pros: [], cons: [], highlights: [] }],
+    loading: false,
+    error: null,
+  }),
+}))
 
 const renderComp = () => render(<MemoryRouter><Watchlist /></MemoryRouter>)
 
 describe('Watchlist', () => {
-
   beforeEach(() => {
     useStore.setState({ watchlist: [] })
   })
@@ -37,5 +46,4 @@ describe('Watchlist', () => {
     renderComp()
     expect(screen.getByText('My Watchlist')).toBeInTheDocument()
   })
-
 })

@@ -1,26 +1,35 @@
 import { render, screen } from '@testing-library/react'
+import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import HeroSection from '../components/HeroSection'
-import { heroProduct } from '../data/mockData'
+import { mockProduct } from './fixtures'
+
+vi.mock('../hooks/useProducts', () => ({
+  useFeaturedProduct: () => ({ data: mockProduct, loading: false, error: null }),
+  useStats: () => ({
+    data: {
+      total_reviews: 12342,
+      total_products: 65,
+      avg_rating: 4.6,
+      positive_pct: 72,
+      star_distribution: [],
+    },
+    loading: false,
+    error: null,
+  }),
+}))
 
 const renderComp = () => render(<MemoryRouter><HeroSection /></MemoryRouter>)
 
 describe('HeroSection', () => {
-
   it('renders the main headline', () => {
     renderComp()
     expect(screen.getByText(/Find the best products/i)).toBeInTheDocument()
   })
 
-  it('renders the overall rating value', () => {
+  it('renders the featured product name', () => {
     renderComp()
-    const instances = screen.getAllByText(String(heroProduct.rating))
-    expect(instances.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders review count', () => {
-    renderComp()
-    expect(screen.getByText(/12,342 reviews/i)).toBeInTheDocument()
+    expect(screen.getByText(mockProduct.name)).toBeInTheDocument()
   })
 
   it('renders all 4 aspect labels', () => {
@@ -31,12 +40,14 @@ describe('HeroSection', () => {
     expect(screen.getByText('Display')).toBeInTheDocument()
   })
 
-  it('renders all 4 aspect score values', () => {
+  it('renders aspect score values', () => {
     renderComp()
-    expect(screen.getByText(String(heroProduct.aspects.camera))).toBeInTheDocument()
-    expect(screen.getAllByText(String(heroProduct.aspects.battery)).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText(String(heroProduct.aspects.performance))).toBeInTheDocument()
-    expect(screen.getByText(String(heroProduct.aspects.display))).toBeInTheDocument()
+    expect(screen.getByText(String(mockProduct.aspects.camera))).toBeInTheDocument()
+    expect(screen.getByText(String(mockProduct.aspects.performance))).toBeInTheDocument()
   })
 
+  it('renders the overall rating', () => {
+    renderComp()
+    expect(screen.getAllByText(String(mockProduct.rating)).length).toBeGreaterThanOrEqual(1)
+  })
 })

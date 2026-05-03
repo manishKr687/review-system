@@ -1,14 +1,18 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import TopReviewedProducts from '../components/TopReviewedProducts'
-import { topProducts } from '../data/mockData'
+import { mockProduct, mockProduct2 } from './fixtures'
 
-// TopReviewedProducts → ProductCard → useNavigate, so needs Router
+vi.mock('../hooks/useProducts', () => ({
+  useTopReviewed:     () => ({ data: [mockProduct, mockProduct2], loading: false, error: null }),
+  useRecommendations: () => ({ data: [mockProduct, mockProduct2], loading: false, error: null }),
+}))
+
 const renderComp = () => render(<MemoryRouter><TopReviewedProducts /></MemoryRouter>)
 
 describe('TopReviewedProducts', () => {
-
   it('renders all 4 tabs', () => {
     renderComp()
     expect(screen.getByText('Overall Best')).toBeInTheDocument()
@@ -31,11 +35,10 @@ describe('TopReviewedProducts', () => {
     expect(screen.getByText('Overall Best')).not.toHaveClass('bg-indigo-600')
   })
 
-  it('renders all product names from mock data', () => {
+  it('renders product names', () => {
     renderComp()
-    topProducts.forEach(product => {
-      expect(screen.getByText(product.name)).toBeInTheDocument()
-    })
+    expect(screen.getByText(mockProduct.name)).toBeInTheDocument()
+    expect(screen.getByText(mockProduct2.name)).toBeInTheDocument()
   })
 
   it('renders the section heading', () => {
@@ -43,9 +46,8 @@ describe('TopReviewedProducts', () => {
     expect(screen.getByText('Top Reviewed Products')).toBeInTheDocument()
   })
 
-  it('renders the Filters button', () => {
+  it('renders the View all button', () => {
     renderComp()
-    expect(screen.getByText('Filters')).toBeInTheDocument()
+    expect(screen.getByText('View all')).toBeInTheDocument()
   })
-
 })

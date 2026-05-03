@@ -1,7 +1,16 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import SearchResults from '../pages/SearchResults'
+import { mockProduct } from './fixtures'
+
+vi.mock('../hooks/useProducts', () => ({
+  useSearch: (q: string) => {
+    if (!q.trim()) return { data: [], loading: false, error: null }
+    if (q === 'xyznotaproduct123') return { data: [], loading: false, error: null }
+    return { data: [mockProduct], loading: false, error: null }
+  },
+}))
 
 const renderWithQuery = (q = '') =>
   render(
@@ -13,7 +22,6 @@ const renderWithQuery = (q = '') =>
   )
 
 describe('SearchResults', () => {
-
   it('shows empty state when no query', () => {
     renderWithQuery('')
     expect(screen.getByText(/Search for products/i)).toBeInTheDocument()
@@ -43,5 +51,4 @@ describe('SearchResults', () => {
     renderWithQuery('sony')
     expect(screen.getByText(/products found/i)).toBeInTheDocument()
   })
-
 })

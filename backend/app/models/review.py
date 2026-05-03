@@ -19,5 +19,6 @@ class Review(Base):
     date: Mapped[str] = mapped_column(String(20), default="")
     is_suspicious: Mapped[bool] = mapped_column(Boolean, default=False)
     reviewer_ip: Mapped[str | None] = mapped_column(String(45), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(20), default="approved", index=True)  # approved | pending | rejected
 
     product: Mapped["Product"] = relationship(back_populates="reviews")

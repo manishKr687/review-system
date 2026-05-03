@@ -7,6 +7,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.review import Review
+from app.schemas.review import AdminReviewOut
 from app.services.cache import cache_delete_prefix
 from app.tasks.analysis import analyse_all_reviews
 from app.tasks.scoring import compute_all_scores
@@ -183,3 +184,121 @@ async def trigger_scoring():
         status="queued",
         message="Score computation started. Poll /api/analyse/status/{task_id} for progress.",
     )
+
+
+# ── Review moderation ─────────────────────────────────────────────────────────
+
+class ModerationCount(BaseModel):
+    pending: int
+
+
+@router.get("/reviews/pending/count", response_model=ModerationCount, dependencies=[Depends(require_admin)])
+async def pending_count(db: AsyncSession = Depends(get_db)):
+    n = (await db.execute(
+        select(func.count()).select_from(Review).where(Review.status == "pending")
+    )).scalar_one()
+    return ModerationCount(pending=n)
+
+
+@router.get("/reviews/pending", response_model=list[AdminReviewOut], dependencies=[Depends(require_admin)])
+async def list_pending_reviews(db: AsyncSession = Depends(get_db)):
+    rows = (await db.execute(
+        select(Review, Product.name.label("product_name"))
+        .join(Product, Review.product_id == Product.id)
+        .where(Review.status == "pending")
+        .order_by(Review.id.asc())
+    )).all()
+    result = []
+    for review, product_name in rows:
+        out = AdminReviewOut(
+            id=review.id,
+            product_id=review.product_id,
+            product_name=product_name,
+            author=review.author,
+            rating=review.rating,
+            title=review.title,
+            body=review.body,
+            sentiment=review.sentiment,
+            verified=review.verified,
+            helpful=review.helpful,
+            date=review.date,
+            is_suspicious=review.is_suspicious,
+            status=review.status,
+            reviewer_ip=review.reviewer_ip,
+        )
+        result.append(out)
+    return result
+
+
+class ApproveBody(BaseModel):
+    verified: bool = False
+
+
+@router.post("/reviews/{review_id}/approve", response_model=AdminReviewOut, dependencies=[Depends(require_admin)])
+async def approve_review(review_id: int, body: ApproveBody, db: AsyncSession = Depends(get_db)):
+    review = await db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    product = await db.get(Product, review.product_id)
+    review.status = "approved"
+    review.verified = body.verified
+
+    if product:
+        # Recalculate rolling rating including this newly approved review
+        approved = (await db.execute(
+            select(Review).where(Review.product_id == product.id, Review.status == "approved")
+        )).scalars().all()
+        product.review_count = len(approved)
+        product.rating = round(sum(r.rating for r in approved) / len(approved), 1) if approved else 0.0
+
+        await db.refresh(product)
+        from app.routers.reviews import _recompute_aspects
+        await _recompute_aspects(product, db)
+
+    await db.commit()
+    await db.refresh(review)
+    await cache_delete_prefix(f"reviews:{review.product_id}:")
+    await cache_delete_prefix(f"product:{review.product_id}")
+
+    product_name = product.name if product else ""
+    return AdminReviewOut(
+        id=review.id, product_id=review.product_id, product_name=product_name,
+        author=review.author, rating=review.rating, title=review.title, body=review.body,
+        sentiment=review.sentiment, verified=review.verified, helpful=review.helpful,
+        date=review.date, is_suspicious=review.is_suspicious, status=review.status,
+        reviewer_ip=review.reviewer_ip,
+    )
+
+
+@router.post("/reviews/{review_id}/reject", response_model=AdminReviewOut, dependencies=[Depends(require_admin)])
+async def reject_review(review_id: int, db: AsyncSession = Depends(get_db)):
+    review = await db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+
+    review.status = "rejected"
+    await db.commit()
+    await db.refresh(review)
+    await cache_delete_prefix(f"reviews:{review.product_id}:")
+
+    product = await db.get(Product, review.product_id)
+    product_name = product.name if product else ""
+    return AdminReviewOut(
+        id=review.id, product_id=review.product_id, product_name=product_name,
+        author=review.author, rating=review.rating, title=review.title, body=review.body,
+        sentiment=review.sentiment, verified=review.verified, helpful=review.helpful,
+        date=review.date, is_suspicious=review.is_suspicious, status=review.status,
+        reviewer_ip=review.reviewer_ip,
+    )
+
+
+@router.delete("/reviews/{review_id}", status_code=204, dependencies=[Depends(require_admin)])
+async def admin_delete_review(review_id: int, db: AsyncSession = Depends(get_db)):
+    review = await db.get(Review, review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    product_id = review.product_id
+    await db.delete(review)
+    await db.commit()
+    await cache_delete_prefix(f"reviews:{product_id}:")

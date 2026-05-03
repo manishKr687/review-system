@@ -1,3 +1,4 @@
+import sentry_sdk
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -8,6 +9,13 @@ from slowapi.errors import RateLimitExceeded
 from app.config import settings
 from app.limiter import limiter
 from app.routers import admin, analysis, categories, products, recommendations, reviews, search, stats
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        traces_sample_rate=0.2,
+        environment=settings.environment,
+    )
 
 
 @asynccontextmanager

@@ -10,7 +10,8 @@ type Tab = 'overview' | 'reviews';
 type ReviewFilter = 'all' | 'positive' | 'negative' | 'verified';
 
 const aspectLabels: Record<string, string> = {
-  camera: 'Camera', battery: 'Battery', performance: 'Performance', display: 'Display',
+  camera: 'Camera', battery: 'Battery', performance: 'Performance',
+  display: 'Display', audio: 'Audio', build: 'Build', value: 'Value',
 };
 
 export default function ProductDetail() {

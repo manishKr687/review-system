@@ -4,10 +4,10 @@ import StarRating from '../components/StarRating';
 import { useStore } from '../store/useStore';
 import { useProducts } from '../hooks/useProducts';
 
-const aspectKeys   = ['camera', 'battery', 'performance', 'display'] as const;
-const aspectLabels = { camera: 'Camera', battery: 'Battery', performance: 'Performance', display: 'Display' };
-
-type AspectKey = typeof aspectKeys[number];
+const ASPECT_LABELS: Record<string, string> = {
+  camera: 'Camera', battery: 'Battery', performance: 'Performance',
+  display: 'Display', audio: 'Audio', build: 'Build', value: 'Value',
+};
 
 function getBestValue(values: number[]): number {
   return Math.max(...values.filter(v => v > 0));
@@ -20,6 +20,11 @@ export default function Compare() {
 
   const products    = allProducts.filter(p => compareList.includes(p.id));
   const suggestions = allProducts.filter(p => !compareList.includes(p.id)).slice(0, 4);
+  const aspectKeys  = products.length > 0
+    ? Object.keys(products[0].aspects).filter(k =>
+        products.some(p => ((p.aspects as Record<string, number>)[k] ?? 0) > 0)
+      )
+    : [];
 
   return (
     <div className="h-full overflow-y-auto">
@@ -116,7 +121,7 @@ export default function Compare() {
                     const best   = getBestValue(values);
                     return (
                       <tr key={key} className={`border-b border-gray-50 ${i % 2 === 0 ? '' : 'bg-gray-50/50'}`}>
-                        <td className="p-4 text-sm font-medium text-gray-600">{aspectLabels[key]}</td>
+                        <td className="p-4 text-sm font-medium text-gray-600">{ASPECT_LABELS[key] ?? key}</td>
                         {products.map(p => {
                           const score  = (p.aspects as Record<string, number>)[key] ?? 0;
                           const isBest = score > 0 && score === best;

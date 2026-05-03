@@ -30,6 +30,23 @@ class ReviewsResponse(BaseModel):
     reviews: list[ReviewOut]
 
 
+class MyReviewOut(BaseModel):
+    id: int
+    product_id: int
+    product_name: str
+    product_icon: str
+    author: str
+    rating: float
+    title: str
+    body: str
+    sentiment: str
+    verified: bool
+    helpful: int
+    date: str
+    is_suspicious: bool
+    status: str
+
+
 class AdminReviewOut(BaseModel):
     id: int
     product_id: int

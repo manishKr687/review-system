@@ -76,6 +76,27 @@ export function submitReview(productId: number, payload: ReviewPayload): Promise
   return apiPost(`/api/reviews/${productId}`, payload)
 }
 
+export interface MyReview {
+  id: number
+  product_id: number
+  product_name: string
+  product_icon: string
+  author: string
+  rating: number
+  title: string
+  body: string
+  sentiment: 'positive' | 'negative' | 'neutral'
+  verified: boolean
+  helpful: number
+  date: string
+  is_suspicious: boolean
+  status: string
+}
+
+export function fetchMyReviews(): Promise<MyReview[]> {
+  return apiFetch<MyReview[]>('/api/reviews/mine')
+}
+
 export function fetchRecommendations(
   type: RecommendationType = 'top_rated',
   limit = 8,

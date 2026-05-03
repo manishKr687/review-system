@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   fetchCategories,
   fetchFeaturedProduct,
+  fetchMyReviews,
   fetchProduct,
   fetchProducts,
   fetchReviews,
@@ -33,7 +34,7 @@ function adaptProduct(p: ApiProduct, rank = 0): Product {
     name: p.name,
     brand: p.brand,
     category: p.category,
-    priceRange: `$${p.price.toLocaleString()}`,
+    priceRange: `₹${p.price.toLocaleString('en-IN')}`,
     rating: p.rating,
     reviewCount: p.review_count,
     rank,
@@ -185,4 +186,8 @@ export function useStats() {
 
 export function useCategories() {
   return useApiCall(() => fetchCategories(), [])
+}
+
+export function useMyReviews() {
+  return useApiCall(() => fetchMyReviews(), [])
 }

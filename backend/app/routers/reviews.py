@@ -10,7 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.review import Review
-from app.schemas.review import ReviewCreate, ReviewOut, ReviewsResponse
+from app.schemas.review import MyReviewOut, ReviewCreate, ReviewOut, ReviewsResponse
 from app.services.cache import cache_delete_prefix, cache_get, cache_set, get_redis
 from app.services.nlp import analyse_sentiment, detect_suspicious, extract_aspect_sentiments
 
@@ -56,6 +56,38 @@ async def _recompute_aspects(product: Product, db: AsyncSession) -> None:
             new_aspects[aspect] = round(sum(scores) / len(scores), 2)
     product.aspects = new_aspects
     attributes.flag_modified(product, "aspects")
+
+
+@router.get("/mine", response_model=list[MyReviewOut])
+async def get_my_reviews(request: Request, db: AsyncSession = Depends(get_db)):
+    client_ip = request.client.host if request.client else None
+    if not client_ip:
+        return []
+    rows = (await db.execute(
+        select(Review, Product.name.label("product_name"), Product.icon.label("product_icon"))
+        .join(Product, Review.product_id == Product.id)
+        .where(Review.reviewer_ip == client_ip, Review.status != "rejected")
+        .order_by(Review.id.desc())
+    )).all()
+    return [
+        MyReviewOut(
+            id=r.Review.id,
+            product_id=r.Review.product_id,
+            product_name=r.product_name,
+            product_icon=r.product_icon,
+            author=r.Review.author,
+            rating=r.Review.rating,
+            title=r.Review.title or "",
+            body=r.Review.body,
+            sentiment=r.Review.sentiment,
+            verified=r.Review.verified,
+            helpful=r.Review.helpful,
+            date=str(r.Review.date),
+            is_suspicious=r.Review.is_suspicious,
+            status=r.Review.status,
+        )
+        for r in rows
+    ]
 
 
 @router.get("/{product_id}", response_model=ReviewsResponse)

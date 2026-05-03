@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, GitCompare, CheckCircle2, XCircle, Lightbulb, ShieldCheck, ThumbsUp, AlertTriangle, PenLine } from 'lucide-react';
 import WriteReviewModal from '../components/WriteReviewModal';
@@ -21,10 +21,14 @@ export default function ProductDetail() {
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const [showWriteModal, setShowWriteModal] = useState(false);
 
-  const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare } = useStore();
+  const { toggleWatchlist, isInWatchlist, addToCompare, isInCompare, addToRecentlyViewed } = useStore();
 
   const productId = Number(id);
   const { data: product, loading: productLoading, error: productError } = useProduct(productId);
+
+  useEffect(() => {
+    if (product) addToRecentlyViewed(product.id);
+  }, [product?.id]);
   const { data: reviewsRaw }    = useReviews(productId, reviewFilter);
   const { data: allReviewsRaw } = useReviews(productId);
   const reviews    = reviewsRaw    ?? [];

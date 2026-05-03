@@ -2,25 +2,22 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, Star, LayoutGrid, GitCompare, MessageSquare,
-  FileEdit, Heart, Bell, Clock, ThumbsUp, PenLine, Settings, X,
+  FileEdit, Heart, Clock, PenLine, Settings, X,
 } from 'lucide-react';
 import WriteReviewModal from './WriteReviewModal';
 
 const navItems = [
-  { icon: Home,          label: 'Home',        path: '/'          },
-  { icon: Star,          label: 'Top Rated',   path: '/top-rated' },
-  { icon: LayoutGrid,    label: 'Categories',  path: '/categories' },
-  { icon: GitCompare,    label: 'Compare',     path: '/compare'   },
-  { icon: MessageSquare, label: 'Review Feed', path: '/search'    },
-  { icon: FileEdit,      label: 'My Reviews',  path: '/my-reviews' },
-  { icon: Heart,         label: 'Watchlist',   path: '/watchlist' },
-  { icon: Bell,          label: 'Alerts',      path: '/'          },
+  { icon: Home,          label: 'Home',        path: '/'               },
+  { icon: Star,          label: 'Top Rated',   path: '/top-rated'      },
+  { icon: LayoutGrid,    label: 'Categories',  path: '/categories'     },
+  { icon: GitCompare,    label: 'Compare',     path: '/compare'        },
+  { icon: MessageSquare, label: 'Review Feed', path: '/search'         },
+  { icon: FileEdit,      label: 'My Reviews',  path: '/my-reviews'     },
+  { icon: Heart,         label: 'Watchlist',   path: '/watchlist'      },
 ];
 
 const activityItems = [
-  { icon: Clock,    label: 'Recently Viewed', path: '/'          },
-  { icon: ThumbsUp, label: 'Helpful Reviews', path: '/search'    },
-  { icon: Heart,    label: 'Liked Reviews',   path: '/watchlist' },
+  { icon: Clock, label: 'Recently Viewed', path: '/recently-viewed' },
 ];
 
 type NavItemProps = { icon: React.ElementType; label: string; path: string; exact?: boolean };

@@ -7,6 +7,7 @@ import Compare from './pages/Compare';
 import SearchResults from './pages/SearchResults';
 import Watchlist from './pages/Watchlist';
 import MyReviews from './pages/MyReviews';
+import RecentlyViewed from './pages/RecentlyViewed';
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="search" element={<SearchResults />} />
           <Route path="watchlist" element={<Watchlist />} />
           <Route path="my-reviews" element={<MyReviews />} />
+          <Route path="recently-viewed" element={<RecentlyViewed />} />
         </Route>
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>

@@ -13,6 +13,10 @@ interface ReviewLensStore {
   toggleWatchlist: (id: number) => void;
   isInWatchlist: (id: number) => boolean;
 
+  // Recently viewed product IDs (newest first, max 20)
+  recentlyViewed: number[];
+  addToRecentlyViewed: (id: number) => void;
+
   // Search query (shared across Header + SearchResults)
   searchQuery: string;
   setSearchQuery: (q: string) => void;
@@ -45,6 +49,14 @@ export const useStore = create<ReviewLensStore>((set, get) => ({
   })),
 
   isInWatchlist: (id) => get().watchlist.includes(id),
+
+  // ── Recently Viewed ────────────────────────────────────────────────────────
+  recentlyViewed: [],
+
+  addToRecentlyViewed: (id) => set((s) => {
+    const filtered = s.recentlyViewed.filter(i => i !== id);
+    return { recentlyViewed: [id, ...filtered].slice(0, 20) };
+  }),
 
   // ── Search ─────────────────────────────────────────────────────────────────
   searchQuery: '',

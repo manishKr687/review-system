@@ -278,6 +278,29 @@ export default function AdminProducts() {
                   rows={3} className={inputCls + ' resize-none'}
                 />
               </Field>
+              <Field label="Highlights (one per line)">
+                <textarea
+                  value={(form.highlights ?? []).join('\n')}
+                  onChange={e => setForm(f => ({ ...f, highlights: e.target.value.split('\n').filter(Boolean) }))}
+                  rows={3} className={inputCls + ' resize-none'}
+                />
+              </Field>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Aspect Scores (0–5)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['camera','battery','performance','display','audio','build','value'] as const).map(key => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 w-24 capitalize">{key}</span>
+                      <input
+                        type="number" min={0} max={5} step={0.1}
+                        value={(form.aspects as Record<string,number>)[key] ?? 0}
+                        onChange={e => setForm(f => ({ ...f, aspects: { ...f.aspects, [key]: Number(e.target.value) } }))}
+                        className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium">Cancel</button>

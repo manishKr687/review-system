@@ -33,3 +33,6 @@ __pycache__/
 *.pyc
 *.pyo
 backend/.venv/
+
+# Database backups (never commit dumps)
+backups/

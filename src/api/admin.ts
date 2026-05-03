@@ -121,3 +121,45 @@ export function deleteProduct(id: number): Promise<void> {
 export function triggerAnalysis(): Promise<AnalyseResponse> {
   return adminFetch<AnalyseResponse>('/api/admin/analyse', { method: 'POST' })
 }
+
+// ── Review moderation ─────────────────────────────────────────────────────────
+
+export interface AdminReview {
+  id: number
+  product_id: number
+  product_name: string
+  author: string
+  rating: number
+  title: string
+  body: string
+  sentiment: string
+  verified: boolean
+  helpful: number
+  date: string
+  is_suspicious: boolean
+  status: string
+  reviewer_ip: string | null
+}
+
+export function fetchPendingCount(): Promise<{ pending: number }> {
+  return adminFetch<{ pending: number }>('/api/admin/reviews/pending/count')
+}
+
+export function fetchPendingReviews(): Promise<AdminReview[]> {
+  return adminFetch<AdminReview[]>('/api/admin/reviews/pending')
+}
+
+export function approveReview(id: number, verified = false): Promise<AdminReview> {
+  return adminFetch<AdminReview>(`/api/admin/reviews/${id}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ verified }),
+  })
+}
+
+export function rejectReview(id: number): Promise<AdminReview> {
+  return adminFetch<AdminReview>(`/api/admin/reviews/${id}/reject`, { method: 'POST' })
+}
+
+export function adminDeleteReview(id: number): Promise<void> {
+  return adminFetch<void>(`/api/admin/reviews/${id}`, { method: 'DELETE' })
+}

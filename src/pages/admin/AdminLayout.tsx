@@ -1,18 +1,19 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Star, LayoutDashboard, Package, LogOut } from 'lucide-react'
-import { clearKey, getStoredKey } from '../../api/admin'
-import { useEffect } from 'react'
-
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Package,         label: 'Products',  path: '/admin/products' },
-]
+import { Star, LayoutDashboard, Package, ShieldAlert, LogOut } from 'lucide-react'
+import { clearKey, getStoredKey, fetchPendingCount } from '../../api/admin'
+import { useEffect, useState } from 'react'
 
 export default function AdminLayout() {
   const navigate = useNavigate()
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
-    if (!getStoredKey()) navigate('/admin/login', { replace: true })
+    if (!getStoredKey()) { navigate('/admin/login', { replace: true }); return }
+    fetchPendingCount().then(r => setPendingCount(r.pending)).catch(() => {})
+    const id = setInterval(() => {
+      fetchPendingCount().then(r => setPendingCount(r.pending)).catch(() => {})
+    }, 30_000)
+    return () => clearInterval(id)
   }, [navigate])
 
   function handleLogout() {
@@ -38,11 +39,15 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-3">
-          {navItems.map(({ icon: Icon, label, path }) => (
+          {[
+            { icon: LayoutDashboard, label: 'Dashboard', path: '/admin',          end: true },
+            { icon: Package,         label: 'Products',  path: '/admin/products', end: false },
+            { icon: ShieldAlert,     label: 'Reviews',   path: '/admin/reviews',  end: false },
+          ].map(({ icon: Icon, label, path, end }) => (
             <NavLink
               key={path}
               to={path}
-              end={path === '/admin'}
+              end={end}
               className={({ isActive }) =>
                 `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium mb-0.5 transition-colors ${
                   isActive
@@ -54,7 +59,12 @@ export default function AdminLayout() {
               {({ isActive }) => (
                 <>
                   <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                  {label}
+                  <span className="flex-1">{label}</span>
+                  {label === 'Reviews' && pendingCount > 0 && (
+                    <span className="bg-amber-100 text-amber-700 text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                      {pendingCount}
+                    </span>
+                  )}
                 </>
               )}
             </NavLink>

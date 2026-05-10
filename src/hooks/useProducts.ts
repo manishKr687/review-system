@@ -42,6 +42,7 @@ function adaptProduct(p: ApiProduct, rank = 0): Product {
     quote: p.quote,
     aspects: p.aspects,
     ...colors,
+    imageUrl: p.image_url ?? null,
     scores: p.scores as RecommendationScores | undefined,
   }
 }

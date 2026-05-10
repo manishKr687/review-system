@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Star, Loader2, CheckCircle2 } from 'lucide-react';
 import { submitReview } from '../api/products';
 import { useSearch } from '../hooks/useProducts';
+import { useAuthStore } from '../store/useAuthStore';
 import type { Product } from '../data/mockData';
 
 interface Props {
@@ -75,10 +76,11 @@ function ProductSearch({ onSelect }: { onSelect: (p: Product) => void }) {
 }
 
 export default function WriteReviewModal({ onClose, prefilledProduct }: Props) {
+  const { user } = useAuthStore();
   const [selectedProduct, setSelectedProduct] = useState<{ id: number; name: string } | null>(
     prefilledProduct ?? null
   );
-  const [author, setAuthor] = useState('');
+  const [author, setAuthor] = useState(user?.display_name ?? '');
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -86,7 +88,8 @@ export default function WriteReviewModal({ onClose, prefilledProduct }: Props) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
 
-  const canSubmit = selectedProduct && author.trim() && rating > 0 && body.trim().length >= 10;
+  const effectiveAuthor = user?.display_name ?? author;
+  const canSubmit = selectedProduct && effectiveAuthor.trim() && rating > 0 && body.trim().length >= 10;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -94,7 +97,7 @@ export default function WriteReviewModal({ onClose, prefilledProduct }: Props) {
     setSubmitting(true);
     setError('');
     try {
-      await submitReview(selectedProduct!.id, { author, rating, title, body });
+      await submitReview(selectedProduct!.id, { author: effectiveAuthor, rating, title, body });
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed. Please try again.');
@@ -161,20 +164,22 @@ export default function WriteReviewModal({ onClose, prefilledProduct }: Props) {
               )}
             </div>
 
-            {/* Author */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Your name <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={author}
-                onChange={e => setAuthor(e.target.value)}
-                placeholder="e.g. Rahul S."
-                maxLength={100}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-50"
-              />
-            </div>
+            {/* Author — hidden when logged in (name taken from account) */}
+            {!user && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Your name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={author}
+                  onChange={e => setAuthor(e.target.value)}
+                  placeholder="e.g. Rahul S."
+                  maxLength={100}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-50"
+                />
+              </div>
+            )}
 
             {/* Star rating */}
             <div>

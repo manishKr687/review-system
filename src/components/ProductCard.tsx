@@ -52,7 +52,16 @@ export default function ProductCard({ product, showActions = false }: ProductCar
         <div className={`absolute top-3 left-3 w-7 h-7 rounded-lg ${badgeColor} flex items-center justify-center text-white text-sm font-bold shadow`}>
           {product.rank}
         </div>
-        <span className="text-7xl drop-shadow">{product.icon}</span>
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-32 w-32 object-contain drop-shadow-md"
+            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <span className="text-7xl drop-shadow">{product.icon}</span>
+        )}
 
         {/* Quick action buttons */}
         {showActions && (

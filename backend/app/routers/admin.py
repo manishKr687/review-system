@@ -52,6 +52,7 @@ class ProductUpdate(BaseModel):
     pros: list[str] | None = None
     cons: list[str] | None = None
     highlights: list[str] | None = None
+    image_url: str | None = None
 
 
 class AdminProduct(BaseModel):
@@ -68,6 +69,7 @@ class AdminProduct(BaseModel):
     pros: list[str]
     cons: list[str]
     highlights: list[str]
+    image_url: str | None = None
     model_config = {"from_attributes": True}
 
 

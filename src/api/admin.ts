@@ -57,6 +57,7 @@ export interface AdminProduct {
   pros: string[]
   cons: string[]
   highlights: string[]
+  image_url?: string | null
 }
 
 export type ProductCreate = Omit<AdminProduct, 'id'>

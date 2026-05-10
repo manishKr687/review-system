@@ -32,6 +32,7 @@ export interface ApiProduct {
   pros?: string[]
   cons?: string[]
   highlights?: string[]
+  image_url?: string | null
 }
 
 export interface ApiReview {

@@ -10,6 +10,8 @@ from app.config import settings
 from app.database import get_db
 from app.models.product import Product
 from app.models.review import Review
+from app.models.user import User
+from app.routers.auth import get_current_user
 from app.schemas.review import MyReviewOut, ReviewCreate, ReviewOut, ReviewsResponse
 from app.services.cache import cache_delete_prefix, cache_get, cache_set, get_redis
 from app.services.nlp import analyse_sentiment, detect_suspicious, extract_aspect_sentiments
@@ -77,14 +79,23 @@ async def _recompute_aspects(product: Product, db: AsyncSession) -> None:
 
 
 @router.get("/mine", response_model=list[MyReviewOut])
-async def get_my_reviews(request: Request, db: AsyncSession = Depends(get_db)):
-    client_ip = request.client.host if request.client else None
-    if not client_ip:
-        return []
+async def get_my_reviews(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_current_user),
+):
+    if current_user:
+        condition = Review.user_id == current_user.id
+    else:
+        client_ip = request.client.host if request.client else None
+        if not client_ip:
+            return []
+        condition = Review.reviewer_ip == client_ip
+
     rows = (await db.execute(
         select(Review, Product.name.label("product_name"), Product.icon.label("product_icon"))
         .join(Product, Review.product_id == Product.id)
-        .where(Review.reviewer_ip == client_ip, Review.status != "rejected")
+        .where(condition, Review.status != "rejected")
         .order_by(Review.id.desc())
     )).all()
     return [
@@ -139,6 +150,7 @@ async def create_review(
     product_id: int,
     payload: ReviewCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_current_user),
 ):
     client_ip = request.client.host if request.client else None
 
@@ -149,32 +161,40 @@ async def create_review(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # One review per IP per product
-    if client_ip:
+    # One review per user (or per IP if anonymous)
+    if current_user:
+        existing = (await db.execute(
+            select(Review).where(Review.product_id == product_id, Review.user_id == current_user.id)
+        )).scalar_one_or_none()
+    elif client_ip:
         existing = (await db.execute(
             select(Review).where(Review.product_id == product_id, Review.reviewer_ip == client_ip)
         )).scalar_one_or_none()
-        if existing:
-            raise HTTPException(status_code=409, detail="You have already reviewed this product.")
+    else:
+        existing = None
+    if existing:
+        raise HTTPException(status_code=409, detail="You have already reviewed this product.")
 
     label, _ = analyse_sentiment(payload.body)
     suspicious = detect_suspicious(payload.body, payload.rating)
     # Suspicious reviews go to moderation queue; clean ones auto-approve
     review_status = "pending" if suspicious else "approved"
 
+    author_name = current_user.display_name if current_user else payload.author
     review = Review(
         product_id=product_id,
-        author=payload.author,
+        author=author_name,
         rating=payload.rating,
         title=payload.title,
         body=payload.body,
         sentiment=label,
-        verified=False,
+        verified=current_user is not None,
         helpful=0,
         date=date.today().isoformat(),
         is_suspicious=suspicious,
         reviewer_ip=client_ip,
         status=review_status,
+        user_id=current_user.id if current_user else None,
     )
     db.add(review)
 

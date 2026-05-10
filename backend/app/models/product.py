@@ -22,5 +22,6 @@ class Product(Base):
     highlights: Mapped[list] = mapped_column(JSON, default=list)
     scores: Mapped[dict] = mapped_column(JSON, default=dict)
     composite_score: Mapped[float] = mapped_column(Float, default=0.0, index=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     reviews: Mapped[list["Review"]] = relationship(back_populates="product", lazy="select")

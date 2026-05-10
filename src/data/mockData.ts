@@ -23,6 +23,7 @@ export interface Product {
   bgTo: string;
   phoneColor: string;
   icon: string;
+  imageUrl?: string | null;
   scores?: RecommendationScores;
 }
 

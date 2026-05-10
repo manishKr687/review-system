@@ -25,6 +25,7 @@ class ProductBase(BaseModel):
     pros: list[str]
     cons: list[str]
     highlights: list[str]
+    image_url: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -41,6 +42,7 @@ class ProductList(BaseModel):
     quote: str
     aspects: dict
     scores: dict = {}
+    image_url: str | None = None
 
     model_config = {"from_attributes": True}
 

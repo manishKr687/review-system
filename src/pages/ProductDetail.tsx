@@ -76,8 +76,17 @@ export default function ProductDetail() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex gap-8">
 
           {/* Product image */}
-          <div className={`flex-shrink-0 w-52 h-52 rounded-2xl bg-gradient-to-br ${product.bgFrom} ${product.bgTo} flex items-center justify-center text-8xl`}>
-            {product.icon}
+          <div className={`flex-shrink-0 w-52 h-52 rounded-2xl bg-gradient-to-br ${product.bgFrom} ${product.bgTo} flex items-center justify-center`}>
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-44 h-44 object-contain drop-shadow-lg"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+              />
+            ) : (
+              <span className="text-8xl">{product.icon}</span>
+            )}
           </div>
 
           {/* Details */}

@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, PenLine, Bell, ChevronDown, Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Search, PenLine, Bell, Menu, LogOut } from 'lucide-react';
 import WriteReviewModal from './WriteReviewModal';
+import { useAuthStore } from '../store/useAuthStore';
+import { fetchMe } from '../api/auth';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,8 +11,19 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const navigate = useNavigate();
+  const { user, isLoggedIn, setAuth, logout } = useAuthStore();
   const [query, setQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
+
+  // Rehydrate user from token on first load
+  useEffect(() => {
+    if (isLoggedIn && !user) {
+      fetchMe().then(u => setAuth(u, localStorage.getItem('rl_token')!)).catch(logout);
+    }
+  }, []);
+
+  const displayName = user?.display_name ?? 'Guest';
+  const initials = displayName.split(' ').map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase();
 
   const handleSearch = () => {
     const q = query.trim();
@@ -41,7 +54,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder='Search products or features…'
+          placeholder="Search products or features…"
           className="bg-transparent flex-1 text-sm outline-none text-gray-700 placeholder-gray-400 min-w-0"
         />
       </div>
@@ -57,7 +70,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
       <div className="hidden md:block w-px h-6 bg-gray-200" />
 
-      {/* Write a Review — hidden on small screens */}
+      {/* Write a Review */}
       <button
         onClick={() => setShowModal(true)}
         className="hidden md:flex items-center gap-2 text-sm text-gray-600 font-medium hover:text-indigo-600 transition-colors flex-shrink-0 whitespace-nowrap"
@@ -74,14 +87,43 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </span>
       </button>
 
-      {/* User avatar */}
-      <button className="flex items-center gap-2 flex-shrink-0 hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
-          R
+      {isLoggedIn ? (
+        /* Logged-in: avatar + name → profile, logout button */
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 hover:bg-gray-50 rounded-lg px-2 py-1.5 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-sm font-bold">
+              {initials}
+            </div>
+            <span className="hidden sm:block text-sm font-medium text-gray-700">{displayName}</span>
+          </Link>
+          <button
+            onClick={logout}
+            title="Sign out"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-        <span className="hidden sm:block text-sm font-medium text-gray-700">Rahul</span>
-        <ChevronDown className="hidden sm:block w-4 h-4 text-gray-400" />
-      </button>
+      ) : (
+        /* Guest: sign in / register links */
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Link
+            to="/login"
+            className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors px-2 py-1.5"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/register"
+            className="text-sm font-semibold bg-indigo-600 text-white rounded-lg px-3 py-1.5 hover:bg-indigo-700 transition-colors"
+          >
+            Register
+          </Link>
+        </div>
+      )}
 
     </header>
 

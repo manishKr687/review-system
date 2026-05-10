@@ -17,7 +17,7 @@ const PAGE_SIZE = 20
 const EMPTY_FORM: ProductCreate = {
   name: '', brand: '', category: 'Phones', price: 0,
   rating: 4.0, review_count: 0, icon: '📱', quote: '',
-  aspects: {}, pros: [], cons: [], highlights: [],
+  aspects: {}, pros: [], cons: [], highlights: [], image_url: '',
 }
 
 export default function AdminProducts() {
@@ -72,6 +72,7 @@ export default function AdminProducts() {
       name: p.name, brand: p.brand, category: p.category, price: p.price,
       rating: p.rating, review_count: p.review_count, icon: p.icon, quote: p.quote,
       aspects: p.aspects, pros: p.pros, cons: p.cons, highlights: p.highlights,
+      image_url: p.image_url ?? '',
     })
     setModalOpen(true)
   }
@@ -79,11 +80,12 @@ export default function AdminProducts() {
   async function handleSave() {
     setSaving(true)
     try {
+      const payload = { ...form, image_url: form.image_url?.trim() || null }
       if (editing) {
-        const updated = await updateProduct(editing.id, form)
+        const updated = await updateProduct(editing.id, payload)
         setProducts(prev => prev.map(p => p.id === updated.id ? updated : p))
       } else {
-        const created = await createProduct(form)
+        const created = await createProduct(payload)
         setProducts(prev => [created, ...prev])
       }
       setModalOpen(false)
@@ -166,7 +168,16 @@ export default function AdminProducts() {
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{p.icon}</span>
+                      {p.image_url ? (
+                        <img
+                          src={p.image_url}
+                          alt={p.name}
+                          className="w-9 h-9 object-contain rounded-lg bg-gray-50 border border-gray-100"
+                          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                        />
+                      ) : (
+                        <span className="text-xl">{p.icon}</span>
+                      )}
                       <div>
                         <p className="font-medium text-gray-900">{p.name}</p>
                         <p className="text-xs text-gray-400">{p.brand}</p>
@@ -263,6 +274,25 @@ export default function AdminProducts() {
               </div>
               <Field label="Quote">
                 <textarea value={form.quote} onChange={e => setForm(f => ({ ...f, quote: e.target.value }))} rows={2} className={inputCls + ' resize-none'} />
+              </Field>
+              <Field label="Image URL" span={2}>
+                <input
+                  value={form.image_url ?? ''}
+                  onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))}
+                  placeholder="/images/phones/my-phone.jpg  or  https://example.com/phone.jpg"
+                  className={inputCls}
+                />
+                {form.image_url && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <img
+                      src={form.image_url}
+                      alt="preview"
+                      className="h-16 w-16 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                      onError={e => { (e.currentTarget as HTMLImageElement).src = '' }}
+                    />
+                    <span className="text-xs text-gray-400">Preview</span>
+                  </div>
+                )}
               </Field>
               <Field label="Pros (one per line)">
                 <textarea

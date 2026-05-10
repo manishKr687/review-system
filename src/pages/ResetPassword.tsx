@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Star, Loader2, CheckCircle2 } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API = import.meta.env.VITE_API_URL ?? '';
 
 export default function ResetPassword() {
   const navigate = useNavigate();

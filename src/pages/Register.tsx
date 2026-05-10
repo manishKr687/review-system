@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, Loader2 } from 'lucide-react';
 import { register } from '../api/auth';
+import { ApiError } from '../api/client';
 import { useAuthStore } from '../store/useAuthStore';
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
@@ -43,7 +44,15 @@ export default function Register() {
       setAuth(res.user, res.access_token);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Try again.');
+      if (err instanceof ApiError && err.status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.');
+      } else if (err instanceof ApiError && err.status === 0) {
+        setError(err.message);
+      } else if (err instanceof ApiError && err.status === 400) {
+        setError(err.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

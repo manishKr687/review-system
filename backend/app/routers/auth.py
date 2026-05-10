@@ -2,7 +2,7 @@ import secrets
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
+from app.limiter import limiter
 from app.models.user import User
-from app.schemas.user import TokenResponse, UserLogin, UserOut, UserRegister
-from app.utils.auth import create_token, decode_token, hash_password, verify_password
+from app.schemas.user import ForgotPasswordRequest, ResetPasswordRequest, TokenResponse, UserLogin, UserOut, UserRegister
+from app.utils.auth import create_reset_token, create_token, decode_reset_token, decode_token, hash_password, verify_password
+from app.utils.email import send_password_reset_email
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
@@ -69,7 +71,8 @@ def _oauth_error(msg: str) -> RedirectResponse:
 # ── Email / password ──────────────────────────────────────────────────────────
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-async def register(payload: UserRegister, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, payload: UserRegister, db: AsyncSession = Depends(get_db)):
     existing = (
         await db.execute(select(User).where(User.email == payload.email))
     ).scalar_one_or_none()
@@ -87,13 +90,38 @@ async def register(payload: UserRegister, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def login(request: Request, payload: UserLogin, db: AsyncSession = Depends(get_db)):
     user = (
         await db.execute(select(User).where(User.email == payload.email))
     ).scalar_one_or_none()
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return TokenResponse(access_token=create_token(user.id), user=UserOut.model_validate(user))
+
+
+@router.post("/forgot-password", status_code=204)
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    user = (await db.execute(select(User).where(User.email == payload.email))).scalar_one_or_none()
+    if user:
+        token = create_reset_token(user.email)
+        reset_link = f"{settings.frontend_url}/reset-password?token={token}"
+        await send_password_reset_email(user.email, reset_link)
+    # Always 204 — never reveal whether the email exists
+
+
+@router.post("/reset-password", status_code=204)
+@limiter.limit("5/minute")
+async def reset_password(request: Request, payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    email = decode_reset_token(payload.token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    user.hashed_password = hash_password(payload.password)
+    await db.commit()
 
 
 @router.get("/me", response_model=UserOut)
@@ -117,7 +145,7 @@ async def google_login():
         "access_type": "online",
     })
     response = RedirectResponse(f"{_GOOGLE_AUTH_URL}?{params}")
-    response.set_cookie("oauth_state", state, max_age=600, httponly=True, samesite="lax")
+    response.set_cookie("oauth_state", state, max_age=600, httponly=True, samesite="lax", secure=settings.secure_cookies)
     return response
 
 
@@ -172,7 +200,7 @@ async def github_login():
         "state": state,
     })
     response = RedirectResponse(f"{_GITHUB_AUTH_URL}?{params}")
-    response.set_cookie("oauth_state", state, max_age=600, httponly=True, samesite="lax")
+    response.set_cookie("oauth_state", state, max_age=600, httponly=True, samesite="lax", secure=settings.secure_cookies)
     return response
 
 

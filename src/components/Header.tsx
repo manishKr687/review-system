@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, PenLine, Bell, Menu, LogOut } from 'lucide-react';
-import WriteReviewModal from './WriteReviewModal';
+import { Search, Bell, Menu, LogOut } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { fetchMe } from '../api/auth';
 
@@ -13,7 +12,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const navigate = useNavigate();
   const { user, isLoggedIn, setAuth, logout } = useAuthStore();
   const [query, setQuery] = useState('');
-  const [showModal, setShowModal] = useState(false);
 
   // Rehydrate user from token on first load
   useEffect(() => {
@@ -68,23 +66,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <Search className="w-4 h-4 sm:hidden" />
       </button>
 
-      <div className="hidden md:block w-px h-6 bg-gray-200" />
-
-      {/* Write a Review */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="hidden md:flex items-center gap-2 text-sm text-gray-600 font-medium hover:text-indigo-600 transition-colors flex-shrink-0 whitespace-nowrap"
-      >
-        <PenLine className="w-4 h-4" />
-        Write a Review
-      </button>
-
       {/* Notification bell */}
       <button className="relative flex-shrink-0">
         <Bell className="w-5 h-5 text-gray-500 hover:text-gray-700 transition-colors" />
-        <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
-          3
-        </span>
       </button>
 
       {isLoggedIn ? (
@@ -127,7 +111,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
     </header>
 
-    {showModal && <WriteReviewModal onClose={() => setShowModal(false)} />}
   </>
   );
 }

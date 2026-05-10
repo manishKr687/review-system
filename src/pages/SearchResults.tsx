@@ -10,7 +10,7 @@ export default function SearchResults() {
   const initialQuery    = searchParams.get('q') ?? '';
   const [localQuery, setLocalQuery] = useState(initialQuery);
 
-  const { data: results = [] } = useSearch(initialQuery);
+  const { data: results = [], loading, error } = useSearch(initialQuery);
   const hasQuery = initialQuery.trim().length > 0;
 
   const handleSearch = () => {
@@ -59,6 +59,37 @@ export default function SearchResults() {
           </div>
         )}
 
+        {/* Loading state */}
+        {hasQuery && loading && (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-5">
+                <div className="w-16 h-16 flex-shrink-0 rounded-xl bg-gray-100 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-1/4" />
+                  <div className="h-4 bg-gray-100 rounded animate-pulse w-1/2" />
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error state */}
+        {hasQuery && error && !loading && (
+          <div className="text-center py-16">
+            <p className="text-4xl mb-4">⚠️</p>
+            <p className="text-lg font-medium text-gray-600">Search failed</p>
+            <p className="text-sm text-gray-400 mt-1">{error}</p>
+            <button
+              onClick={handleSearch}
+              className="mt-4 text-sm text-indigo-600 font-medium hover:underline"
+            >
+              Try again →
+            </button>
+          </div>
+        )}
+
         {/* Empty / no query state */}
         {!hasQuery && (
           <div className="text-center py-16 text-gray-400">
@@ -69,7 +100,7 @@ export default function SearchResults() {
         )}
 
         {/* No results */}
-        {hasQuery && results.length === 0 && (
+        {hasQuery && !loading && !error && results.length === 0 && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-5xl mb-4">😕</p>
             <p className="text-lg font-medium text-gray-600">No products found</p>
@@ -84,7 +115,7 @@ export default function SearchResults() {
         )}
 
         {/* Results list */}
-        {results.length > 0 && (
+        {!loading && !error && results.length > 0 && (
           <div className="space-y-3">
             {results.map((product, index) => (
               <div

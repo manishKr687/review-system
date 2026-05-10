@@ -39,3 +39,6 @@ backend/.venv/
 
 # Database backups (never commit dumps)
 backups/
+
+# Product images — serve from CDN/object storage instead
+public/images/

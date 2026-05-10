@@ -84,7 +84,7 @@ function useApiCall<T>(
     setState({ data: undefined, loading: true, error: null })
     apiFetcher()
       .then(d  => { if (!cancelled) setState({ data: d,         loading: false, error: null        }) })
-      .catch(e => { if (!cancelled) setState({ data: undefined, loading: false, error: String(e)   }) })
+      .catch(e => { if (!cancelled) setState({ data: undefined, loading: false, error: e instanceof Error ? e.message : 'Something went wrong' }) })
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)

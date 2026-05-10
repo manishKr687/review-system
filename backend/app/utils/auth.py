@@ -25,3 +25,18 @@ def decode_token(token: str) -> int | None:
         return int(payload["sub"])
     except (JWTError, KeyError, ValueError):
         return None
+
+
+def create_reset_token(email: str) -> str:
+    expire = datetime.utcnow() + timedelta(hours=1)
+    return jwt.encode({"sub": email, "type": "reset", "exp": expire}, settings.jwt_secret, algorithm="HS256")
+
+
+def decode_reset_token(token: str) -> str | None:
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        if payload.get("type") != "reset":
+            return None
+        return payload["sub"]
+    except (JWTError, KeyError, ValueError):
+        return None

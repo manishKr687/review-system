@@ -1,7 +1,10 @@
+import logging
 from datetime import date
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+
+logger = logging.getLogger(__name__)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import attributes
@@ -175,8 +178,13 @@ async def create_review(
     if existing:
         raise HTTPException(status_code=409, detail="You have already reviewed this product.")
 
-    label, _ = analyse_sentiment(payload.body)
-    suspicious = detect_suspicious(payload.body, payload.rating)
+    try:
+        label, _ = analyse_sentiment(payload.body)
+        suspicious = detect_suspicious(payload.body, payload.rating)
+    except Exception:
+        logger.exception("NLP analysis failed for review on product %d", product_id)
+        label = "neutral"
+        suspicious = False
     # Suspicious reviews go to moderation queue; clean ones auto-approve
     review_status = "pending" if suspicious else "approved"
 

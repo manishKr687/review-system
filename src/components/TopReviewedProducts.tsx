@@ -17,7 +17,7 @@ export default function TopReviewedProducts() {
   const navigate = useNavigate();
   const { type } = TABS[activeTab];
 
-  const { data: products = [], loading } = useRecommendations(type, 8);
+  const { data: products = [], loading, error } = useRecommendations(type, 8);
 
   return (
     <section>
@@ -62,6 +62,12 @@ export default function TopReviewedProducts() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="bg-gray-100 rounded-2xl h-48 animate-pulse" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center text-gray-400">
+            <p className="text-3xl mb-2">⚠️</p>
+            <p className="text-sm font-medium text-gray-500">Couldn't load products</p>
+            <p className="text-xs mt-1">{error}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

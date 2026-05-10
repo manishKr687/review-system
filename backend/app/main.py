@@ -1,10 +1,15 @@
+import logging
 import sentry_sdk
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+
+logger = logging.getLogger(__name__)
 
 from app.config import settings
 from app.limiter import limiter
@@ -27,11 +32,20 @@ app = FastAPI(title="ReviewLens API", version="1.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    if isinstance(exc, HTTPException):
+        raise exc
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
 _cors_origins = settings.cors_origins
+_localhost_regex = r"http://localhost:\d+" if not settings.is_production else None
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
-    allow_origin_regex=r"http://localhost:\d+",
+    allow_origin_regex=_localhost_regex,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Star, Loader2 } from 'lucide-react';
 import { login } from '../api/auth';
+import { ApiError } from '../api/client';
 import { useAuthStore } from '../store/useAuthStore';
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
@@ -42,8 +43,14 @@ export default function Login() {
       const res = await login({ email, password });
       setAuth(res.user, res.access_token);
       navigate('/');
-    } catch {
-      setError('Invalid email or password.');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.');
+      } else if (err instanceof ApiError && err.status === 0) {
+        setError(err.message);
+      } else {
+        setError('Invalid email or password.');
+      }
     } finally {
       setLoading(false);
     }
@@ -128,12 +135,17 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            No account?{' '}
-            <Link to="/register" className="text-indigo-600 font-medium hover:underline">
-              Create one
+          <div className="flex items-center justify-between mt-6">
+            <Link to="/forgot-password" className="text-sm text-gray-500 hover:text-indigo-600 hover:underline">
+              Forgot password?
             </Link>
-          </p>
+            <p className="text-sm text-gray-500">
+              No account?{' '}
+              <Link to="/register" className="text-indigo-600 font-medium hover:underline">
+                Create one
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
